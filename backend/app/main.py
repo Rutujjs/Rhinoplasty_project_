@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 
+from app.api.routes.datasets import router as dataset_router
+
+
 app = FastAPI(
     title="Synthetic APAC Patient Face Dataset Generator",
     version="1.0.0",
@@ -19,3 +22,6 @@ def health_check():
     return {
         "status": "healthy"
     }
+
+
+app.include_router(dataset_router)

@@ -1,0 +1,44 @@
+from pydantic import BaseModel, Field, model_validator
+
+
+class DatasetCreate(BaseModel):
+    dataset_name: str = Field(min_length=1, max_length=255)
+
+    region: str = Field(min_length=1, max_length=100)
+
+    population_group: str = Field(min_length=1, max_length=100)
+
+    age_min: int = Field(ge=0, le=120)
+
+    age_max: int = Field(ge=0, le=120)
+
+    sex_or_attribute: str = Field(min_length=1, max_length=50)
+
+    skin_tone: str = Field(min_length=1, max_length=50)
+
+    pose: str = Field(min_length=1, max_length=50)
+
+    expression: str = Field(min_length=1, max_length=50)
+
+    medical_condition: str | None = Field(
+        default=None,
+        max_length=100
+    )
+
+    medical_severity: str | None = Field(
+        default=None,
+        max_length=50
+    )
+
+    num_images: int = Field(gt=0)
+
+    resolution: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def validate_age_range(self):
+        if self.age_min > self.age_max:
+            raise ValueError(
+                "age_min must be less than or equal to age_max"
+            )
+
+        return self
