@@ -56,3 +56,25 @@ def generate_dataset_images(
         db.refresh(image)
 
     return generated_images
+
+def get_dataset_images(
+    db: Session,
+    dataset_id: int
+) -> list[GeneratedImage]:
+    return (
+        db.query(GeneratedImage)
+        .filter(GeneratedImage.dataset_id == dataset_id)
+        .order_by(GeneratedImage.id.asc())
+        .all()
+    )
+
+
+def get_generated_image_by_id(
+    db: Session,
+    image_id: int
+) -> GeneratedImage | None:
+    return (
+        db.query(GeneratedImage)
+        .filter(GeneratedImage.id == image_id)
+        .first()
+    )
