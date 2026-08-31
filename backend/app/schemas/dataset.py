@@ -1,23 +1,19 @@
-from pydantic import BaseModel, Field, model_validator
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class DatasetCreate(BaseModel):
     dataset_name: str = Field(min_length=1, max_length=255)
-
     region: str = Field(min_length=1, max_length=100)
-
     population_group: str = Field(min_length=1, max_length=100)
 
     age_min: int = Field(ge=0, le=120)
-
     age_max: int = Field(ge=0, le=120)
 
     sex_or_attribute: str = Field(min_length=1, max_length=50)
-
     skin_tone: str = Field(min_length=1, max_length=50)
-
     pose: str = Field(min_length=1, max_length=50)
-
     expression: str = Field(min_length=1, max_length=50)
 
     medical_condition: str | None = Field(
@@ -31,7 +27,6 @@ class DatasetCreate(BaseModel):
     )
 
     num_images: int = Field(gt=0)
-
     resolution: int = Field(gt=0)
 
     @model_validator(mode="after")
@@ -40,5 +35,29 @@ class DatasetCreate(BaseModel):
             raise ValueError(
                 "age_min must be less than or equal to age_max"
             )
-
         return self
+
+
+class DatasetResponse(BaseModel):
+    id: int
+    dataset_name: str
+    region: str
+    population_group: str
+
+    age_min: int
+    age_max: int
+
+    sex_or_attribute: str
+    skin_tone: str
+    pose: str
+    expression: str
+
+    medical_condition: str | None
+    medical_severity: str | None
+
+    num_images: int
+    resolution: int
+    status: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
