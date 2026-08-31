@@ -1,12 +1,23 @@
 from pathlib import Path
 from random import randint
+from time import perf_counter
 
 from PIL import Image, ImageDraw
 
-from backend.app.core.config import settings
+from backend.app.schemas.generation import (
+    GenerationRequest,
+    GeneratedImageResult,
+)
+from generation.interface import FaceGenerator
 
 
-OUTPUT_DIR = Path(settings.GENERATED_IMAGES_DIR)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+OUTPUT_DIR = (
+    PROJECT_ROOT
+    / "storage"
+    / "generated"
+)
 
 OUTPUT_DIR.mkdir(
     parents=True,
@@ -14,41 +25,71 @@ OUTPUT_DIR.mkdir(
 )
 
 
-def generate_mock_image(
-    prompt: str,
-    resolution: int = 512,
-) -> dict:
+class MockFaceGenerator(FaceGenerator):
 
-    seed = randint(100000, 999999)
+    def generate(
+        self,
+        request: GenerationRequest,
+    ) -> GeneratedImageResult:
 
-    image = Image.new(
-        "RGB",
-        (resolution, resolution),
-        "white"
-    )
+        start_time = perf_counter()
 
-    draw = ImageDraw.Draw(image)
+        seed = randint(
+            100000,
+            999999
+        )
 
-    draw.text(
-        (30, 30),
-        "MOCK SYNTHETIC FACE",
-        fill="black"
-    )
+        prompt = (
+            f"Photorealistic synthetic portrait of a "
+            f"fictional person, "
+            f"population group {request.population_group}, "
+            f"age {request.age_min} to {request.age_max}, "
+            f"sex/attribute {request.sex_or_attribute}, "
+            f"skin tone {request.skin_tone}, "
+            f"pose {request.pose}, "
+            f"expression {request.expression}, "
+            f"region {request.region}."
+        )
 
-    draw.text(
-        (30, 60),
-        f"Seed: {seed}",
-        fill="black"
-    )
+        image = Image.new(
+            "RGB",
+            (
+                request.resolution,
+                request.resolution
+            ),
+            "white",
+        )
 
-    file_name = f"mock_{seed}.png"
-    file_path = OUTPUT_DIR / file_name
+        draw = ImageDraw.Draw(image)
 
-    image.save(file_path)
+        draw.text(
+            (30, 30),
+            "MOCK SYNTHETIC FACE",
+            fill="black",
+        )
 
-    return {
-        "image_path": str(file_path),
-        "generation_model": "MOCK",
-        "seed": seed,
-        "prompt": prompt,
-    }
+        draw.text(
+            (30, 60),
+            f"Seed: {seed}",
+            fill="black",
+        )
+
+        filename = f"mock_{seed}.png"
+
+        file_path = (
+            OUTPUT_DIR / filename
+        )
+
+        image.save(file_path)
+
+        generation_time = (
+            perf_counter() - start_time
+        )
+
+        return GeneratedImageResult(
+            image_path=str(file_path),
+            generation_model="MOCK",
+            seed=seed,
+            prompt=prompt,
+            generation_time=generation_time,
+        )
