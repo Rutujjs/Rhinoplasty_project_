@@ -1,10 +1,12 @@
 from pathlib import Path
 from random import randint
+
 from PIL import Image, ImageDraw
 
+from backend.app.core.config import settings
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-OUTPUT_DIR = PROJECT_ROOT / "storage" / "generated"
+
+OUTPUT_DIR = Path(settings.GENERATED_IMAGES_DIR)
 
 OUTPUT_DIR.mkdir(
     parents=True,
