@@ -58,6 +58,12 @@ class DatasetResponse(BaseModel):
     num_images: int
     resolution: int
     status: str
+
+    generated_count: int
+    generation_attempts: int
+
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+    )

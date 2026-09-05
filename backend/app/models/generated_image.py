@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.database.base import Base
+from backend.app.database.base import Base
 
 
 class GeneratedImage(Base):

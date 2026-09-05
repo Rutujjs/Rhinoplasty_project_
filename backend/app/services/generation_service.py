@@ -1,14 +1,24 @@
 from sqlalchemy.orm import Session
 
-from app.models.dataset import Dataset
-from app.models.generated_image import GeneratedImage
-from app.schemas.generation import GenerationRequest
+from backend.app.models.dataset import Dataset
+from backend.app.models.generated_image import GeneratedImage
+from backend.app.schemas.generation import GenerationRequest
 from generation.mock_generator import MockFaceGenerator
+
+
+# Temporary generator.
+# Later this will be replaced by Member 2's real
+# diffusion-based generator.
 generator = MockFaceGenerator()
+
 
 def build_generation_request(
     dataset: Dataset,
 ) -> GenerationRequest:
+    """
+    Convert the stored dataset configuration into the
+    standard request format expected by the generation engine.
+    """
 
     return GenerationRequest(
         age_min=dataset.age_min,
@@ -29,12 +39,22 @@ def generate_dataset_images(
     db: Session,
     dataset: Dataset,
 ) -> list[GeneratedImage]:
+    """
+    Generate the requested number of candidate images
+    and store their metadata in the database.
 
-    generated_images = []
+    Dataset-level status management is intentionally handled
+    by the API route, not by this service.
+    """
+
+    generated_images: list[GeneratedImage] = []
 
     request = build_generation_request(dataset)
 
     for _ in range(dataset.num_images):
+
+        # Every call to the generator counts as one attempt.
+        dataset.generation_attempts += 1
 
         result = generator.generate(request)
 
@@ -48,33 +68,52 @@ def generate_dataset_images(
         )
 
         db.add(image_record)
+
+        # For the current mock-generation stage,
+        # every successfully produced candidate increments
+        # generated_count.
+        dataset.generated_count += 1
+
+        db.commit()
+        db.refresh(image_record)
+
         generated_images.append(image_record)
-
-    db.commit()
-
-    for image in generated_images:
-        db.refresh(image)
 
     return generated_images
 
+
 def get_dataset_images(
     db: Session,
-    dataset_id: int
+    dataset_id: int,
 ) -> list[GeneratedImage]:
+    """
+    Retrieve all generated images belonging to a dataset.
+    """
+
     return (
         db.query(GeneratedImage)
-        .filter(GeneratedImage.dataset_id == dataset_id)
-        .order_by(GeneratedImage.id.asc())
+        .filter(
+            GeneratedImage.dataset_id == dataset_id
+        )
+        .order_by(
+            GeneratedImage.id.asc()
+        )
         .all()
     )
 
 
 def get_generated_image_by_id(
     db: Session,
-    image_id: int
+    image_id: int,
 ) -> GeneratedImage | None:
+    """
+    Retrieve a single generated image by its ID.
+    """
+
     return (
         db.query(GeneratedImage)
-        .filter(GeneratedImage.id == image_id)
+        .filter(
+            GeneratedImage.id == image_id
+        )
         .first()
     )

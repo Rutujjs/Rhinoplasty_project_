@@ -1,8 +1,6 @@
-from app.database.base import Base
-from app.database.connection import engine
-
-# Import models so SQLAlchemy knows about them
-from app.models.dataset import Dataset
+from backend.app.database.base import Base
+from backend.app.database.connection import engine
+from backend.app.models.dataset import Dataset
 
 
 Base.metadata.create_all(bind=engine)

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app.models.dataset import Dataset
-from app.schemas.dataset import DatasetCreate
+from backend.app.models.dataset import Dataset
+from backend.app.schemas.dataset import DatasetCreate
 
 
 def create_dataset(db: Session, dataset_data: DatasetCreate) -> Dataset:

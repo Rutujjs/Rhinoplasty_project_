@@ -74,19 +74,24 @@ class GeneratedImageResult(BaseModel):
 
 
 class GeneratedImageResponse(BaseModel):
-    """
-    Response returned by the backend after an image
-    has been stored in the database.
-    """
     id: int
     dataset_id: int
-    image_path: str
+    image_url: str
     generation_model: str
     seed: int
     prompt: str
     status: str
     created_at: datetime
-
     model_config = ConfigDict(
         from_attributes=True
     )
+
+class GenerationStatusResponse(BaseModel):
+    dataset_id: int
+    status: str
+
+    requested_images: int
+    generated_count: int
+    generation_attempts: int
+
+    progress_percentage: float

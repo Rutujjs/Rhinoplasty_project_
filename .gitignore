@@ -18,3 +18,24 @@ storage/datasets/
 
 # Logs
 *.log
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# Editable package metadata
+*.egg-info/
+
+# Generated files
+storage/generated/
+
+# IDE
+.vscode/
+.idea/
