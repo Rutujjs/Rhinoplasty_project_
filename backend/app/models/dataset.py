@@ -81,9 +81,9 @@ class Dataset(Base):
     )
 
     status: Mapped[DatasetStatus] = mapped_column(
-    String(30),
-    nullable=False,
-    default=DatasetStatus.CREATED
+        String(30),
+        nullable=False,
+        default=DatasetStatus.CREATED
     )
 
     generated_count: Mapped[int] = mapped_column(
@@ -96,6 +96,25 @@ class Dataset(Base):
         Integer,
         nullable=False,
         default=0
+    )
+
+    # Multi-view patient ID and prompt configuration
+    patient_id: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        default=None,
+    )
+
+    custom_prompt: Mapped[str | None] = mapped_column(
+        String(4000),
+        nullable=True,
+        default=None,
+    )
+
+    viewpoint_prompts: Mapped[str | None] = mapped_column(
+        String(8000),
+        nullable=True,
+        default=None,
     )
 
     created_at: Mapped[datetime] = mapped_column(

@@ -52,6 +52,11 @@ class GenerationRequest(BaseModel):
         le=2048
     )
 
+    # Multi-view patient ID and prompt overrides
+    patient_id: str | None = Field(default=None, max_length=50)
+    viewpoint: str | None = Field(default=None, max_length=50)
+    custom_prompt: str | None = Field(default=None, max_length=4000)
+
     @model_validator(mode="after")
     def validate_age_range(self):
         if self.age_min > self.age_max:
@@ -71,6 +76,9 @@ class GeneratedImageResult(BaseModel):
     seed: int
     prompt: str
     generation_time: float
+    patient_id: str | None = None
+    viewpoint: str | None = None
+    viewpoint_name: str | None = None
 
 
 class GeneratedImageResponse(BaseModel):
@@ -82,9 +90,20 @@ class GeneratedImageResponse(BaseModel):
     prompt: str
     status: str
     created_at: datetime
+
+    # Multi-view & deformation fields
+    patient_id: str | None = None
+    viewpoint: str | None = None
+    viewpoint_name: str | None = None
+    validation_status: str | None = None
+    deformation_status: str | None = "NOT_STARTED"
+    deformed_image_path: str | None = None
+    mask_image_path: str | None = None
+
     model_config = ConfigDict(
         from_attributes=True
     )
+
 
 class GenerationStatusResponse(BaseModel):
     dataset_id: int

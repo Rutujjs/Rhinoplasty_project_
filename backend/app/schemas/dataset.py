@@ -26,8 +26,13 @@ class DatasetCreate(BaseModel):
         max_length=50
     )
 
-    num_images: int = Field(gt=0)
-    resolution: int = Field(gt=0)
+    num_images: int = Field(gt=0, default=9)
+    resolution: int = Field(gt=0, default=512)
+
+    # Multi-view patient ID and prompt overrides
+    patient_id: str | None = Field(default=None, max_length=50)
+    custom_prompt: str | None = Field(default=None, max_length=4000)
+    viewpoint_prompts: str | None = Field(default=None, max_length=8000)
 
     @model_validator(mode="after")
     def validate_age_range(self):
@@ -61,6 +66,10 @@ class DatasetResponse(BaseModel):
 
     generated_count: int
     generation_attempts: int
+
+    patient_id: str | None = None
+    custom_prompt: str | None = None
+    viewpoint_prompts: str | None = None
 
     created_at: datetime
 

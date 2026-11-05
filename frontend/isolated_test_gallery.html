@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Isolated Kaggle GPU Test — Patient P01 Multi-View Gallery</title>
+  <style>
+    body { background: #0b0d13; color: #e2e8f0; font-family: system-ui, sans-serif; padding: 2rem; margin: 0; }
+    h1 { color: #90cdf4; font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .header-bar { background: #141824; border: 1px solid #232936; border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .badge { background: #22543d; color: #9ae6b4; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 999px; text-transform: uppercase; }
+    .multiview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 1100px; margin: 0 auto; }
+    .card { background: #141824; border: 1px solid #232936; border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+    .card-title { font-weight: 700; font-size: 0.85rem; color: #edf2f7; }
+    .card-orient { font-size: 0.7rem; color: #718096; }
+    .img-wrap { width: 100%; aspect-ratio: 1; background: #050608; border: 1px solid #2d3748; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .img-wrap img { width: 100%; height: 100%; object-fit: contain; }
+    .card-foot { margin-top: 0.5rem; display: flex; justify-content: space-between; font-size: 0.72rem; color: #a0aec0; }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div>
+      <h1>Verified Kaggle FLUX.2 Klein 4B Multi-View Gallery</h1>
+      <div style="font-size:0.8rem;color:#a0aec0">Patient: <strong>P01</strong> &bull; Kernel: <code>rutujavaijanathpote/apac-face-generator</code> &bull; Execution Time: <strong>469.55s</strong></div>
+    </div>
+    <span class="badge">9/9 Viewpoints Verified</span>
+    <a href="/ui" style="background:#2b6cb0;color:#fff;text-decoration:none;font-size:0.78rem;font-weight:700;padding:0.35rem 0.8rem;border-radius:6px;display:inline-flex;align-items:center;">← Main Dashboard</a>
+  </div>
+  <div class="multiview-grid">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Front (0°)</div>
+          <div class="card-orient">Canonical frontal reference</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/frontal.png" alt="Front (0°)">
+      </div>
+      <div class="card-foot">
+        <span>384×384 px</span>
+        <span>Seed: 20261034</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Left 20°</div>
+          <div class="card-orient">Nose → image-left</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/left_20.png" alt="Left 20°">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262051</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Left 40°</div>
+          <div class="card-orient">Nose → image-left</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/left_40.png" alt="Left 40°">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262151</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Left 60°</div>
+          <div class="card-orient">Nose → image-left</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/left_60.png" alt="Left 60°">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262251</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Right 20°</div>
+          <div class="card-orient">Nose → image-right</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/right_20.png" alt="Right 20°">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262351</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Right 40°</div>
+          <div class="card-orient">Nose → image-right</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/right_40.png" alt="Right 40°">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262451</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Right 60°</div>
+          <div class="card-orient">Nose → image-right</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/right_60.png" alt="Right 60°">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262551</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Basal</div>
+          <div class="card-orient">Camera below nasal tip</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/basal.png" alt="Basal">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262651</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Helicopter</div>
+          <div class="card-orient">Camera above forehead</div>
+        </div>
+        <span class="badge">ACCEPTED</span>
+      </div>
+      <div class="img-wrap">
+        <img src="/test_gallery/P01/helicopter.png" alt="Helicopter">
+      </div>
+      <div class="card-foot">
+        <span>512×512 px</span>
+        <span>Seed: 20262751</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

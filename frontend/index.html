@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthetic APAC Face Dataset Generator — Multi-View FLUX Architecture</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b0d14;
+      color: #e2e8f0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    header {
+      background: #141824;
+      border-bottom: 1px solid #232936;
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: #90cdf4; letter-spacing: -0.01em; }
+    .badge-mv {
+      background: linear-gradient(135deg, #3182ce, #805ad5);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    header span.status-indicator { font-size: 0.8rem; color: #718096; }
+
+    main { max-width: 1320px; margin: 0 auto; padding: 1.75rem 2rem; }
+
+    /* ---- layout grid ---- */
+    .grid { display: grid; grid-template-columns: 440px 1fr; gap: 1.75rem; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ---- card ---- */
+    .card {
+      background: #141824;
+      border: 1px solid #232936;
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #90cdf4;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ---- tabs ---- */
+    .session-tabs {
+      display: flex;
+      gap: 0.4rem;
+      background: #0b0d14;
+      padding: 0.3rem;
+      border-radius: 8px;
+      border: 1px solid #232936;
+      margin-bottom: 1rem;
+    }
+    .session-tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #a0aec0;
+      transition: all 0.15s;
+    }
+    .session-tab.active {
+      background: #232936;
+      color: #90cdf4;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ---- form ---- */
+    .form-row { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; align-items: flex-start; }
+    .form-row label {
+      width: 120px;
+      flex-shrink: 0;
+      font-size: 0.8rem;
+      color: #a0aec0;
+      padding-top: 0.45rem;
+      font-weight: 500;
+    }
+    .form-row input, .form-row select, .form-row textarea {
+      flex: 1;
+      background: #0b0d14;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      color: #e2e8f0;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.84rem;
+      font-family: inherit;
+    }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 1px #4299e1;
+    }
+
+    /* Synchronized Prompt Box */
+    .prompt-box {
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.4;
+      font-size: 0.8rem;
+      background: #080a0f;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      color: #cbd5e0;
+      padding: 0.6rem;
+    }
+    .prompt-sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      color: #48bb78;
+      margin-top: 0.25rem;
+    }
+
+    /* Viewpoint checklist */
+    .viewpoints-badge-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+      background: #0b0d14;
+      padding: 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #232936;
+    }
+    .vp-pill {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.4rem;
+      border-radius: 4px;
+      background: #1a202c;
+      border: 1px solid #2d3748;
+      color: #90cdf4;
+      text-align: center;
+      font-weight: 600;
+    }
+    .vp-pill.canonical {
+      border-color: #3182ce;
+      background: #1a365d;
+      color: #bee3f8;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: #3182ce; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #2b6cb0; }
+    .btn-success { background: #276749; color: #9ae6b4; }
+    .btn-success:hover:not(:disabled) { background: #22543d; }
+    .btn-danger  { background: #742a2a; color: #fc8181; }
+    .btn-danger:hover:not(:disabled)  { background: #63171b; }
+    .btn-outline { background: transparent; border: 1px solid #4a5568; color: #a0aec0; }
+    .btn-outline:hover:not(:disabled) { border-color: #90cdf4; color: #e2e8f0; }
+    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.75rem; }
+    .btn-full { width: 100%; margin-top: 0.75rem; }
+
+    /* ---- dataset list ---- */
+    #dataset-list { list-style: none; max-height: 250px; overflow-y: auto; }
+    #dataset-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
+      margin-bottom: 0.4rem;
+      background: #0b0d14;
+      border: 1px solid #232936;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    #dataset-list li:hover { border-color: #4299e1; }
+    #dataset-list li.active { border-color: #4299e1; background: #17223b; }
+    .ds-name { font-weight: 600; color: #f7fafc; }
+    .ds-meta { color: #718096; font-size: 0.74rem; }
+
+    /* ---- badges ---- */
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-CREATED   { background: #2d3748; color: #a0aec0; }
+    .badge-GENERATING{ background: #2a4365; color: #90cdf4; }
+    .badge-COMPLETED { background: #22543d; color: #9ae6b4; }
+    .badge-COMPLETED_WITH_ERRORS { background: #7b341e; color: #fbd38d; }
+    .badge-FAILED    { background: #63171b; color: #fc8181; }
+    .badge-QUEUED    { background: #2d3748; color: #a0aec0; }
+    .badge-RUNNING   { background: #2a4365; color: #90cdf4; }
+    .badge-ACCEPTED  { background: #22543d; color: #9ae6b4; }
+    .badge-REJECTED  { background: #63171b; color: #fc8181; }
+
+    /* ---- detail header ---- */
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .detail-header h2 { font-size: 1.15rem; font-weight: 700; color: #f7fafc; }
+    .detail-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    /* ---- progress & stats ---- */
+    .progress-wrap {
+      background: #0b0d14;
+      border: 1px solid #232936;
+      border-radius: 999px;
+      height: 7px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3182ce, #63b3ed);
+      transition: width 0.3s ease;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .stat {
+      background: #0b0d14;
+      border: 1px solid #232936;
+      border-radius: 6px;
+      padding: 0.5rem 0.6rem;
+      text-align: center;
+    }
+    .stat-value { font-size: 1.1rem; font-weight: 800; color: #90cdf4; }
+    .stat-label { font-size: 0.68rem; color: #718096; text-transform: uppercase; font-weight: 600; }
+
+    /* Deformation integration banner */
+    .deformation-banner {
+      background: #171b26;
+      border: 1px solid #2b3548;
+      border-left: 4px solid #805ad5;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+    .deformation-banner span.deform-tag {
+      background: #44337a;
+      color: #d6bcfa;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Multi-view 3x3 Clinical Grid */
+    .multiview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 0.75rem;
+    }
+    @media (max-width: 800px) {
+      .multiview-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .multiview-grid { grid-template-columns: 1fr; }
+    }
+
+    .viewpoint-card {
+      background: #0b0d14;
+      border: 1px solid #232936;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .viewpoint-card:hover {
+      border-color: #4299e1;
+      transform: translateY(-2px);
+    }
+    .viewpoint-card-header {
+      padding: 0.5rem 0.75rem;
+      background: #141824;
+      border-bottom: 1px solid #232936;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .viewpoint-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    .viewpoint-orient {
+      font-size: 0.68rem;
+      color: #718096;
+    }
+    .viewpoint-card-img-wrap {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #050608;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .viewpoint-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .viewpoint-placeholder {
+      font-size: 0.78rem;
+      color: #4a5568;
+      text-align: center;
+      padding: 1rem;
+    }
+    .viewpoint-card-footer {
+      padding: 0.5rem 0.75rem;
+      background: #141824;
+      border-top: 1px solid #232936;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+    }
+
+    /* Modal for Image Review */
+    #image-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    #image-modal.show { display: flex; }
+    .modal-content {
+      background: #141824;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      max-width: 800px;
+      width: 100%;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.25rem;
+      font-size: 1.4rem;
+      color: #a0aec0;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* ---- toast ---- */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #toast.show { opacity: 1; transform: none; }
+    #toast.error { background: #63171b; color: #fc8181; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Synthetic APAC Patient Face Dataset Generator</h1>
+    <span class="badge-mv">FLUX Multi-View 9-Angle Architecture</span>
+    <span class="status-indicator" id="api-status">connecting…</span>
+    <div style="margin-left:auto;display:flex;gap:0.75rem;align-items:center;">
+      <a href="/gallery" style="background:#276749;color:#fff;text-decoration:none;font-size:0.78rem;font-weight:700;padding:0.35rem 0.8rem;border-radius:6px;display:inline-flex;align-items:center;gap:0.35rem;">🖼️ Verified 9-View Gallery</a>
+      <a href="/kaggle-test" style="background:#2b6cb0;color:#fff;text-decoration:none;font-size:0.78rem;font-weight:700;padding:0.35rem 0.8rem;border-radius:6px;display:inline-flex;align-items:center;gap:0.35rem;">🚀 Kaggle Preview Test</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- LEFT: Tabs for Input Session & Prompt Session + Dataset List -->
+      <div>
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="session-tabs">
+            <div class="session-tab active" id="tab-input" onclick="switchSession('input')">1. Input Session</div>
+            <div class="session-tab" id="tab-prompt" onclick="switchSession('prompt')">2. Prompt Session</div>
+          </div>
+
+          <form id="create-form">
+            <!-- INPUT SESSION VIEW -->
+            <div id="session-input-content">
+              <div class="form-row">
+                <label>Dataset Name</label>
+                <input type="text" name="dataset_name" id="f-name" value="Rhinoplasty_APAC_P01" required />
+              </div>
+              <div class="form-row">
+                <label>Patient ID</label>
+                <input type="text" name="patient_id" id="f-pid" value="P01" placeholder="e.g. P01" required />
+              </div>
+              <div class="form-row">
+                <label>Population</label>
+                <select name="population_group" id="f-pop">
+                  <option value="East Asian" selected>East Asian</option>
+                  <option value="South Asian">South Asian</option>
+                  <option value="Southeast Asian">Southeast Asian</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Region</label>
+                <select name="region" id="f-region">
+                  <option value="Japan">Japan</option>
+                  <option value="China">China</option>
+                  <option value="Korea" selected>Korea</option>
+                  <option value="India">India</option>
+                  <option value="Vietnam">Vietnam</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Age Range</label>
+                <div style="display:flex;gap:0.5rem;flex:1">
+                  <input type="number" name="age_min" id="f-age-min" value="25" min="18" max="90" style="width:50%" required />
+                  <input type="number" name="age_max" id="f-age-max" value="30" min="18" max="90" style="width:50%" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Sex / Gender</label>
+                <select name="sex_or_attribute" id="f-sex">
+                  <option value="female" selected>Female</option>
+                  <option value="male">Male</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Skin Tone</label>
+                <select name="skin_tone" id="f-skin">
+                  <option value="fair" selected>Fair / Light-Medium Beige</option>
+                  <option value="light_brown">Light Brown</option>
+                  <option value="medium_brown">Medium Brown</option>
+                  <option value="olive">Olive</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Condition</label>
+                <select name="medical_condition" id="f-condition">
+                  <option value="Preoperative rhinoplasty nasal dorsum assessment" selected>Preoperative Rhinoplasty</option>
+                  <option value="Deviated nasal septum">Deviated Septum</option>
+                  <option value="Alar base asymmetry">Alar Base Asymmetry</option>
+                  <option value="Dorsal hump prominence">Dorsal Hump Prominence</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Severity</label>
+                <select name="medical_severity" id="f-severity">
+                  <option value="mild">Mild</option>
+                  <option value="moderate" selected>Moderate</option>
+                  <option value="pronounced">Pronounced</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Expression</label>
+                <select name="expression" id="f-expr">
+                  <option value="neutral relaxed" selected>Neutral relaxed</option>
+                  <option value="slight closed-lip smile">Slight closed-lip smile</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Resolution</label>
+                <select name="resolution" id="f-res">
+                  <option value="512" selected>512 × 512 px (Standard FLUX View)</option>
+                  <option value="384">384 × 384 px (Fast Review)</option>
+                </select>
+              </div>
+
+              <!-- Viewpoint specification preview -->
+              <div style="margin-top:0.75rem;">
+                <label style="font-size:0.76rem;color:#a0aec0;font-weight:700;">REQUIRED CLINICAL VIEWPOINTS (9 TOTAL)</label>
+                <div class="viewpoints-badge-grid">
+                  <div class="vp-pill canonical">1. Front (0°)</div>
+                  <div class="vp-pill">2. Left 20°</div>
+                  <div class="vp-pill">3. Left 40°</div>
+                  <div class="vp-pill">4. Left 60°</div>
+                  <div class="vp-pill">5. Right 20°</div>
+                  <div class="vp-pill">6. Right 40°</div>
+                  <div class="vp-pill">7. Right 60°</div>
+                  <div class="vp-pill">8. Basal View</div>
+                  <div class="vp-pill">9. Helicopter</div>
+                </div>
+                <input type="hidden" name="num_images" value="9" />
+                <input type="hidden" name="pose" value="multi-view clinical" />
+              </div>
+
+              <!-- Synchronized Prompt Preview inside Input Session -->
+              <div style="margin-top:0.85rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+                  <label style="font-size:0.75rem;color:#a0aec0;font-weight:700;">CANONICAL FRONTAL PROMPT</label>
+                  <span class="prompt-sync-indicator">⚡ Synchronized</span>
+                </div>
+                <textarea id="input-prompt-preview" class="prompt-box" rows="4" placeholder="Canonical prompt will generate automatically..."></textarea>
+              </div>
+            </div>
+
+            <!-- PROMPT SESSION VIEW (SHARED UNDERLYING STATE) -->
+            <div id="session-prompt-content" style="display:none">
+              <div style="font-size:0.8rem;color:#a0aec0;margin-bottom:0.75rem;line-height:1.4;">
+                Edit the shared prompt below. Any changes made here are <strong>immediately synchronized</strong> with the Input Session and will be passed to the Kaggle notebook manifest.
+              </div>
+              <div class="form-row" style="flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:0.35rem;">
+                  <span style="font-size:0.78rem;font-weight:700;color:#90cdf4;">Full Canonical Prompt Editor</span>
+                  <button type="button" class="btn-outline btn-sm" onclick="resetPromptToAuto()">Reset to Auto</button>
+                </div>
+                <textarea id="prompt-session-editor" class="prompt-box" style="min-height:220px;" rows="9"></textarea>
+                <div style="margin-top:0.5rem;font-size:0.75rem;color:#718096;">
+                  Viewpoint prompts (Left 20/40/60, Right 20/40/60, Basal, Helicopter) inherit identity and nasal anatomy directly from this canonical reference.
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary btn-full" id="btn-submit-dataset">Create & Enqueue Multi-View Dataset</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Existing Datasets <span id="ds-count" style="color:#718096"></span></div>
+          <ul id="dataset-list"><li style="color:#4a5568;font-size:0.8rem">Loading…</li></ul>
+        </div>
+      </div>
+
+      <!-- RIGHT: Multi-View Results Panel -->
+      <div class="card" id="detail-panel">
+        <div id="detail-empty">Select or create a dataset to view its multi-view clinical gallery.</div>
+        <div id="detail-content" style="display:none">
+          <div class="detail-header">
+            <div>
+              <h2 id="d-name"></h2>
+              <div style="margin-top:0.3rem">
+                <span id="d-status-badge" class="badge"></span>
+                <span id="d-patient-tag" style="color:#90cdf4;font-size:0.78rem;font-weight:700;margin-left:0.6rem"></span>
+                <span id="d-provider" style="color:#718096;font-size:0.75rem;margin-left:0.5rem"></span>
+              </div>
+            </div>
+            <div class="detail-actions">
+              <button class="btn-primary btn-sm" id="btn-generate">Generate 9 Views</button>
+              <button class="btn-danger btn-sm"  id="btn-cancel" style="display:none">Cancel</button>
+              <button class="btn-success btn-sm" id="btn-export" style="display:none">Export ZIP</button>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div id="job-section" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem">
+              <span style="font-size:0.75rem;color:#a0aec0" id="d-stage"></span>
+              <span style="font-size:0.75rem;color:#90cdf4" id="d-pct"></span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar" id="d-progress-bar" style="width:0%"></div></div>
+            <div class="stats">
+              <div class="stat"><div class="stat-value" id="s-requested">9</div><div class="stat-label">Viewpoints</div></div>
+              <div class="stat"><div class="stat-value" id="s-accepted">—</div><div class="stat-label">Accepted</div></div>
+              <div class="stat"><div class="stat-value" id="s-rejected">—</div><div class="stat-label">Rejected</div></div>
+              <div class="stat"><div class="stat-value" id="s-status">—</div><div class="stat-label">Status</div></div>
+            </div>
+          </div>
+
+          <!-- Deformation Pipeline Integration Boundary Banner -->
+          <div class="deformation-banner">
+            <div>
+              <div style="font-weight:700;color:#d6bcfa;margin-bottom:0.15rem;">Future Nose Deformation Pipeline</div>
+              <div style="color:#a0aec0;font-size:0.74rem;">Ready for inpainting & mask engine integration. Original viewpoints are preserved.</div>
+            </div>
+            <span class="deform-tag" id="d-deformation-status">PENDING_INTEGRATION</span>
+          </div>
+
+          <!-- 9-Viewpoint Gallery Grid -->
+          <div style="margin-top:1.25rem">
+            <div class="card-title">
+              <span>Patient Clinical Viewpoints (9 Angles)</span>
+              <span style="font-size:0.72rem;color:#718096;text-transform:none;">FLUX.2 Klein multi-view sequence</span>
+            </div>
+            <div class="multiview-grid" id="d-multiview-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal for Full Screen Image Inspection -->
+  <div id="image-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h3 id="modal-title" style="margin-bottom:0.75rem;font-size:1.1rem;color:#90cdf4;"></h3>
+      <div style="text-align:center;background:#050608;border-radius:6px;padding:0.5rem;margin-bottom:1rem;">
+        <img id="modal-img" src="" alt="Viewpoint Full View" style="max-height:550px;max-width:100%;border-radius:4px;" />
+      </div>
+      <div id="modal-details" style="font-size:0.8rem;color:#a0aec0;line-height:1.5;"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API = '';
+
+    // Standard 9 Viewpoints order
+    const STANDARD_VIEWPOINTS = [
+      { key: "frontal",    name: "Front (0°)",   orient: "Canonical frontal reference" },
+      { key: "left_20",    name: "Left 20°",     orient: "Nose → image-left" },
+      { key: "left_40",    name: "Left 40°",     orient: "Nose → image-left" },
+      { key: "left_60",    name: "Left 60°",     orient: "Nose → image-left" },
+      { key: "right_20",   name: "Right 20°",    orient: "Nose → image-right" },
+      { key: "right_40",   name: "Right 40°",    orient: "Nose → image-right" },
+      { key: "right_60",   name: "Right 60°",    orient: "Nose → image-right" },
+      { key: "basal",      name: "Basal",        orient: "Camera below nasal tip" },
+      { key: "helicopter", name: "Helicopter",   orient: "Camera above forehead" },
+    ];
+
+    // State
+    let datasets = [];
+    let selectedId = null;
+    let pollTimer = null;
+    let currentSharedPrompt = "";
+    let isPromptManuallyEdited = false;
+
+    // ------------------------------------------------------------------ //
+    // Synchronized Prompt System (Two-way sync)                          //
+    // ------------------------------------------------------------------ //
+    function buildAutoPrompt() {
+      const pop = document.getElementById('f-pop').value;
+      const reg = document.getElementById('f-region').value;
+      const minAge = document.getElementById('f-age-min').value;
+      const maxAge = document.getElementById('f-age-max').value;
+      const sex = document.getElementById('f-sex').value;
+      const skin = document.getElementById('f-skin').value;
+      const cond = document.getElementById('f-condition').value;
+      const sev = document.getElementById('f-severity').value;
+      const expr = document.getElementById('f-expr').value;
+
+      return `Photorealistic clinical-style frontal photograph of a fictional synthetic adult ${pop} ${sex}, approximately ${minAge}–${maxAge} years old from ${reg}. Distinctive natural facial structure, ${skin} skin with authentic skin pores. Standardized preoperative clinical rhinoplasty view showing ${cond} (${sev}). Face upright at exact 0-degree angle, ${expr} expression, neutral grey studio background, even clinical illumination. Sharp facial details, natural nasal anatomy, single person, photorealistic.`;
+    }
+
+    function syncPromptState(newPromptText, fromManual = true) {
+      currentSharedPrompt = newPromptText;
+      if (fromManual) isPromptManuallyEdited = true;
+
+      // Update both UI textareas seamlessly
+      const elInput = document.getElementById('input-prompt-preview');
+      const elEditor = document.getElementById('prompt-session-editor');
+
+      if (elInput && elInput.value !== newPromptText) elInput.value = newPromptText;
+      if (elEditor && elEditor.value !== newPromptText) elEditor.value = newPromptText;
+    }
+
+    function onAttributeFormChanged() {
+      if (!isPromptManuallyEdited) {
+        syncPromptState(buildAutoPrompt(), false);
+      }
+    }
+
+    function resetPromptToAuto() {
+      isPromptManuallyEdited = false;
+      syncPromptState(buildAutoPrompt(), false);
+      toast("Prompt reset to canonical automatic format.");
+    }
+
+    function switchSession(tab) {
+      document.getElementById('tab-input').classList.toggle('active', tab === 'input');
+      document.getElementById('tab-prompt').classList.toggle('active', tab === 'prompt');
+      document.getElementById('session-input-content').style.display = (tab === 'input') ? '' : 'none';
+      document.getElementById('session-prompt-content').style.display = (tab === 'prompt') ? '' : 'none';
+    }
+
+    // ------------------------------------------------------------------ //
+    // Toast                                                              //
+    // ------------------------------------------------------------------ //
+    function toast(msg, isError = false) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'show' + (isError ? ' error' : '');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => { el.className = ''; }, 3200);
+    }
+
+    // ------------------------------------------------------------------ //
+    // API Helpers                                                        //
+    // ------------------------------------------------------------------ //
+    async function apiFetch(path, opts = {}) {
+      const r = await fetch(API + path, {
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+        ...opts,
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        throw new Error(body.error || body.detail || `HTTP ${r.status}`);
+      }
+      if (r.headers.get('content-type')?.includes('application/zip')) return r;
+      return r.json();
+    }
+
+    async function checkHealth() {
+      try {
+        const d = await apiFetch('/health');
+        document.getElementById('api-status').textContent = '● System ready';
+        document.getElementById('api-status').style.color = '#68d391';
+      } catch {
+        document.getElementById('api-status').textContent = '✕ Backend offline';
+        document.getElementById('api-status').style.color = '#fc8181';
+      }
+    }
+
+    // ------------------------------------------------------------------ //
+    // Datasets Management                                                //
+    // ------------------------------------------------------------------ //
+    async function loadDatasets() {
+      try {
+        datasets = await apiFetch('/datasets/');
+        renderDatasetList();
+      } catch (e) {
+        toast('Failed to load datasets: ' + e.message, true);
+      }
+    }
+
+    function renderDatasetList() {
+      const ul = document.getElementById('dataset-list');
+      document.getElementById('ds-count').textContent = `(${datasets.length})`;
+      if (datasets.length === 0) {
+        ul.innerHTML = '<li style="color:#4a5568;font-size:0.8rem">No datasets created yet.</li>';
+        return;
+      }
+      ul.innerHTML = datasets.map(ds => `
+        <li data-id="${ds.id}" class="${ds.id === selectedId ? 'active' : ''}">
+          <div>
+            <div class="ds-name">${ds.dataset_name}</div>
+            <div class="ds-meta">${ds.patient_id || 'P' + ds.id} · ${ds.region} · 9 Viewpoints</div>
+          </div>
+          <span class="badge badge-${ds.status}">${ds.status}</span>
+        </li>
+      `).join('');
+      ul.querySelectorAll('li[data-id]').forEach(li => {
+        li.addEventListener('click', () => selectDataset(parseInt(li.dataset.id)));
+      });
+    }
+
+    function selectDataset(id) {
+      selectedId = id;
+      stopPoll();
+      renderDatasetList();
+      const ds = datasets.find(d => d.id === id);
+      if (!ds) return;
+      showDetail(ds);
+      loadImages(id);
+      checkActiveJob(ds);
+    }
+
+    function showDetail(ds) {
+      document.getElementById('detail-empty').style.display = 'none';
+      document.getElementById('detail-content').style.display = '';
+
+      document.getElementById('d-name').textContent = ds.dataset_name;
+      document.getElementById('d-patient-tag').textContent = `Patient: ${ds.patient_id || 'P' + ds.id}`;
+      setBadge('d-status-badge', ds.status);
+
+      const exportable = ds.status === 'COMPLETED' || ds.status === 'COMPLETED_WITH_ERRORS';
+      document.getElementById('btn-export').style.display = exportable ? '' : 'none';
+      document.getElementById('btn-generate').disabled = (ds.status === 'GENERATING' || ds.status === 'COMPLETED');
+      document.getElementById('btn-cancel').style.display = (ds.status === 'GENERATING') ? '' : 'none';
+      document.getElementById('job-section').style.display = (ds.status === 'GENERATING') ? '' : 'none';
+
+      // Load deformation status
+      loadDeformationStatus(ds.id);
+    }
+
+    async function loadDeformationStatus(datasetId) {
+      try {
+        const def = await apiFetch(`/datasets/${datasetId}/deformation/status`);
+        document.getElementById('d-deformation-status').textContent = def.status || 'PENDING_INTEGRATION';
+      } catch {
+        document.getElementById('d-deformation-status').textContent = 'PENDING_INTEGRATION';
+      }
+    }
+
+    function setBadge(elId, status) {
+      const el = document.getElementById(elId);
+      el.textContent = status;
+      el.className = `badge badge-${status}`;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Multi-View Gallery Rendering                                       //
+    // ------------------------------------------------------------------ //
+    async function loadImages(datasetId) {
+      const grid = document.getElementById('d-multiview-grid');
+      grid.innerHTML = '<div style="color:#718096;grid-column:1/-1;text-align:center;padding:2rem;">Loading viewpoints…</div>';
+
+      try {
+        const images = await apiFetch(`/images/dataset/${datasetId}`);
+        renderMultiViewGrid(images);
+      } catch (e) {
+        grid.innerHTML = `<div style="color:#fc8181;grid-column:1/-1;">Error loading images: ${e.message}</div>`;
+      }
+    }
+
+    function renderMultiViewGrid(images) {
+      const grid = document.getElementById('d-multiview-grid');
+      grid.innerHTML = '';
+
+      // Match images by viewpoint key
+      const imgMap = {};
+      images.forEach(img => {
+        const vk = (img.viewpoint || 'frontal').toLowerCase();
+        imgMap[vk] = img;
+      });
+
+      STANDARD_VIEWPOINTS.forEach(vp => {
+        const img = imgMap[vp.key];
+        const card = document.createElement('div');
+        card.className = 'viewpoint-card';
+
+        const hasImg = !!img;
+        const imgUrl = hasImg ? img.image_url : '';
+        const vStatus = hasImg ? (img.validation_status || 'ACCEPTED') : 'PENDING';
+        const dStatus = hasImg ? (img.deformation_status || 'NOT_STARTED') : 'NOT_STARTED';
+
+        card.innerHTML = `
+          <div class="viewpoint-card-header">
+            <div>
+              <div class="viewpoint-title">${vp.name}</div>
+              <div class="viewpoint-orient">${vp.orient}</div>
+            </div>
+            <span class="badge badge-${vStatus}">${vStatus}</span>
+          </div>
+          <div class="viewpoint-card-img-wrap" onclick="openModal('${vp.name}', '${imgUrl}', '${vp.orient}', '${vStatus}')">
+            ${hasImg
+              ? `<img src="${imgUrl}" alt="${vp.name}" loading="lazy" />`
+              : `<div class="viewpoint-placeholder">Waiting for generation<br/><span style="font-size:0.68rem;color:#718096;">Angle: ${vp.name}</span></div>`
+            }
+          </div>
+          <div class="viewpoint-card-footer">
+            <span style="color:#718096">Deform: ${dStatus}</span>
+            ${hasImg
+              ? `<a href="${imgUrl}" download="${vp.key}.png" class="btn-outline btn-sm" style="text-decoration:none;padding:0.2rem 0.5rem;font-size:0.7rem;">Download</a>`
+              : `<span style="color:#4a5568">—</span>`
+            }
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // ------------------------------------------------------------------ //
+    // Image Modal                                                        //
+    // ------------------------------------------------------------------ //
+    function openModal(title, url, orient, status) {
+      if (!url) return;
+      document.getElementById('modal-title').textContent = title + ` (${orient})`;
+      document.getElementById('modal-img').src = url;
+      document.getElementById('modal-details').innerHTML = `
+        <strong>Viewpoint:</strong> ${title} &bull;
+        <strong>Camera / Head Angle:</strong> ${orient} &bull;
+        <strong>Validation Status:</strong> ${status}
+      `;
+      document.getElementById('image-modal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('image-modal').classList.remove('show');
+    }
+
+    // ------------------------------------------------------------------ //
+    // Job Lifecycle & Polling                                            //
+    // ------------------------------------------------------------------ //
+    async function triggerGenerate() {
+      if (!selectedId) return;
+      try {
+        const res = await apiFetch(`/datasets/${selectedId}/generate`, { method: 'POST' });
+        toast(`Job ${res.job_id} queued for 9-view generation!`);
+        startPoll(res.job_id);
+        const ds = datasets.find(d => d.id === selectedId);
+        if (ds) { ds.status = 'GENERATING'; showDetail(ds); }
+      } catch (e) {
+        toast('Generation failed to start: ' + e.message, true);
+      }
+    }
+
+    async function checkActiveJob(ds) {
+      if (ds.status !== 'GENERATING') return;
+      try {
+        const jobs = await apiFetch(`/datasets/${ds.id}/generation-status`);
+        startPoll(null, ds.id);
+      } catch {}
+    }
+
+    function startPoll(jobId, datasetId) {
+      stopPoll();
+      document.getElementById('job-section').style.display = '';
+
+      pollTimer = setInterval(async () => {
+        try {
+          let status;
+          if (jobId) {
+            status = await apiFetch(`/generation-jobs/${jobId}`);
+          } else if (selectedId) {
+            status = await apiFetch(`/datasets/${selectedId}/generation-status`);
+          }
+          if (!status) return;
+
+          const stage = status.current_stage || status.stage || 'Processing viewpoints';
+          const pct = status.progress_percentage || (status.accepted_count ? Math.round((status.accepted_count / 9) * 100) : 10);
+
+          document.getElementById('d-stage').textContent = stage;
+          document.getElementById('d-pct').textContent = pct + '%';
+          document.getElementById('d-progress-bar').style.width = pct + '%';
+          document.getElementById('s-accepted').textContent = status.accepted_count || status.generated_count || 0;
+          document.getElementById('s-rejected').textContent = status.rejected_count || 0;
+          document.getElementById('s-status').textContent = status.status;
+
+          // If terminal state reached
+          if (['COMPLETED', 'COMPLETED_WITH_ERRORS', 'FAILED', 'CANCELLED'].includes(status.status)) {
+            stopPoll();
+            toast(`Job finished with status: ${status.status}`);
+            await loadDatasets();
+            if (selectedId) {
+              const ds = datasets.find(d => d.id === selectedId);
+              if (ds) showDetail(ds);
+              loadImages(selectedId);
+            }
+          }
+        } catch (e) {
+          console.error("Polling error:", e);
+        }
+      }, 2500);
+    }
+
+    function stopPoll() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    // ------------------------------------------------------------------ //
+    // Form Submission & Event Listeners                                  //
+    // ------------------------------------------------------------------ //
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const payload = {
+        dataset_name: fd.get('dataset_name'),
+        patient_id: fd.get('patient_id'),
+        population_group: fd.get('population_group'),
+        region: fd.get('region'),
+        age_min: parseInt(fd.get('age_min')),
+        age_max: parseInt(fd.get('age_max')),
+        sex_or_attribute: fd.get('sex_or_attribute'),
+        skin_tone: fd.get('skin_tone'),
+        pose: 'frontal',
+        expression: fd.get('expression'),
+        medical_condition: fd.get('medical_condition'),
+        medical_severity: fd.get('medical_severity'),
+        num_images: 9,
+        resolution: parseInt(fd.get('resolution')),
+        custom_prompt: currentSharedPrompt || null,
+      };
+
+      try {
+        const ds = await apiFetch('/datasets/', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        toast(`Dataset "${ds.dataset_name}" created with 9 viewpoints!`);
+        await loadDatasets();
+        selectDataset(ds.id);
+      } catch (err) {
+        toast('Failed to create dataset: ' + err.message, true);
+      }
+    });
+
+    // Synchronize prompt textareas in real-time
+    document.getElementById('input-prompt-preview').addEventListener('input', (e) => {
+      syncPromptState(e.target.value, true);
+    });
+
+    document.getElementById('prompt-session-editor').addEventListener('input', (e) => {
+      syncPromptState(e.target.value, true);
+    });
+
+    // Form inputs listen for changes to update canonical auto prompt
+    ['f-pop', 'f-region', 'f-age-min', 'f-age-max', 'f-sex', 'f-skin', 'f-condition', 'f-severity', 'f-expr'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', onAttributeFormChanged);
+    });
+
+    document.getElementById('btn-generate').addEventListener('click', triggerGenerate);
+
+    document.getElementById('btn-export').addEventListener('click', async () => {
+      if (!selectedId) return;
+      try {
+        const res = await apiFetch(`/datasets/${selectedId}/export`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dataset_${selectedId}_multiview.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast("ZIP package downloaded successfully!");
+      } catch (e) {
+        toast("Export failed: " + e.message, true);
+      }
+    });
+
+    document.getElementById('image-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'image-modal') closeModal();
+    });
+
+    // Init
+    checkHealth();
+    loadDatasets();
+    syncPromptState(buildAutoPrompt(), false);
+  </script>
+</body>
+</html>

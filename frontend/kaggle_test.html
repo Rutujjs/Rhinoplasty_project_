@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kaggle Pipeline Test — FLUX.2 Klein Verification</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b0d13;
+      color: #e2e8f0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    header {
+      background: #141824;
+      border-bottom: 1px solid #232936;
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #3182ce, #805ad5);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f7fafc;
+    }
+    .nav-links a {
+      color: #a0aec0;
+      text-decoration: none;
+      font-size: 0.82rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #2d3748;
+      transition: all 0.15s;
+    }
+    .nav-links a:hover {
+      color: #90cdf4;
+      border-color: #4299e1;
+      background: #1a202c;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.75rem 2rem;
+    }
+
+    /* Warning banner */
+    .warning-card {
+      background: #201710;
+      border: 1px solid #744210;
+      border-radius: 8px;
+      padding: 0.9rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .warning-icon {
+      font-size: 1.4rem;
+      color: #ecc94b;
+      line-height: 1;
+    }
+    .warning-content h3 {
+      font-size: 0.88rem;
+      color: #ecc94b;
+      margin-bottom: 0.2rem;
+      font-weight: 700;
+    }
+    .warning-content p {
+      font-size: 0.8rem;
+      color: #cbd5e0;
+    }
+
+    /* Layout grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* Card styling */
+    .card {
+      background: #141824;
+      border: 1px solid #232936;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #90cdf4;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Form rows */
+    .form-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+      align-items: center;
+    }
+    .form-row label {
+      width: 120px;
+      flex-shrink: 0;
+      font-size: 0.78rem;
+      color: #a0aec0;
+    }
+    .form-row input, .form-row select {
+      flex: 1;
+      background: #0b0d13;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      color: #f7fafc;
+      padding: 0.38rem 0.6rem;
+      font-size: 0.82rem;
+    }
+    .form-row input:focus, .form-row select:focus {
+      outline: none;
+      border-color: #4299e1;
+    }
+
+    .prompt-box {
+      background: #0b0d13;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.76rem;
+      color: #cbd5e0;
+      min-height: 85px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.45;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 0.55rem 1.25rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-kaggle {
+      background: linear-gradient(135deg, #2b6cb0, #3182ce);
+      color: #ffffff;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      box-shadow: 0 4px 12px rgba(49, 130, 206, 0.25);
+    }
+    .btn-kaggle:hover:not(:disabled) {
+      background: linear-gradient(135deg, #2c5282, #2b6cb0);
+      transform: translateY(-1px);
+    }
+    .btn-sm {
+      padding: 0.3rem 0.7rem;
+      font-size: 0.75rem;
+    }
+    .btn-secondary {
+      background: #2d3748;
+      color: #e2e8f0;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #4a5568;
+    }
+
+    /* Pipeline stage list */
+    .stage-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .stage-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.85rem;
+      border-radius: 6px;
+      background: #0b0d13;
+      border: 1px solid #1f2430;
+      font-size: 0.82rem;
+      transition: border-color 0.15s;
+    }
+    .stage-item.running {
+      border-color: #3182ce;
+      background: #111a2e;
+    }
+    .stage-item.passed {
+      border-color: #276749;
+    }
+    .stage-item.failed {
+      border-color: #742a2a;
+      background: #241316;
+    }
+    .stage-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .stage-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #1a202c;
+      color: #a0aec0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .stage-item.passed .stage-num {
+      background: #22543d;
+      color: #9ae6b4;
+    }
+    .stage-item.running .stage-num {
+      background: #2b6cb0;
+      color: #fff;
+      animation: pulse 1.5s infinite;
+    }
+    .stage-item.failed .stage-num {
+      background: #742a2a;
+      color: #feb2b2;
+    }
+    .stage-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .stage-name {
+      font-weight: 600;
+      color: #edf2f7;
+    }
+    .stage-details {
+      font-size: 0.7rem;
+      color: #718096;
+      font-family: monospace;
+      max-width: 420px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stage-item.failed .stage-details {
+      color: #fc8181;
+    }
+
+    /* Badges */
+    .badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+    .badge-PENDING { background: #1a202c; color: #718096; }
+    .badge-RUNNING { background: #2b6cb0; color: #bee3f8; }
+    .badge-PASSED  { background: #22543d; color: #9ae6b4; }
+    .badge-FAILED  { background: #742a2a; color: #feb2b2; }
+    .badge-SKIPPED { background: #1a202c; color: #4a5568; }
+
+    /* Preview area */
+    .preview-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 800px) {
+      .preview-layout { grid-template-columns: 1fr; }
+    }
+    .img-container {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #0b0d13;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .img-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .placeholder-text {
+      color: #4a5568;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .meta-table tr {
+      border-bottom: 1px solid #1f2430;
+    }
+    .meta-table td {
+      padding: 0.5rem 0.25rem;
+    }
+    .meta-table td:first-child {
+      color: #718096;
+      width: 140px;
+      font-weight: 500;
+    }
+    .meta-table td:last-child {
+      color: #e2e8f0;
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    /* Diagnostics error banner */
+    .error-banner {
+      background: #2a1215;
+      border: 1px solid #742a2a;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: #feb2b2;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <span class="logo-badge">Kaggle FLUX.2</span>
+      <h1>Kaggle Pipeline Test</h1>
+    </div>
+    <div class="nav-links">
+      <a href="/ui">← Return to Dataset Dashboard</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Strict warning banner -->
+    <div class="warning-card">
+      <div class="warning-icon">⚠️</div>
+      <div class="warning-content">
+        <h3>REAL KAGGLE & FLUX.2 KLEIN EXECUTION</h3>
+        <p>
+          This test triggers a <strong>real remote execution</strong> of the configured Kaggle notebook on Kaggle cloud GPUs using the <code>KAGGLE_BATCH</code> provider.
+          It downloads the ~16 GB FLUX.2 Klein model on first run and generates exactly <strong>1 test image</strong>.
+          It does <strong>NOT</strong> create database records, modify datasets, or update gallery collections.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Test Configuration & Live Prompt Preview -->
+      <div>
+        <div class="card">
+          <div class="card-title">Test Configuration</div>
+          <form id="test-form">
+            <div class="form-row">
+              <label>Region</label>
+              <select id="f-region">
+                <option value="India" selected>India</option>
+                <option value="China">China</option>
+                <option value="Japan">Japan</option>
+                <option value="Korea">Korea</option>
+                <option value="Southeast Asia">Southeast Asia</option>
+                <option value="Australia">Australia</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Population</label>
+              <input type="text" id="f-population" value="South Asian" required />
+            </div>
+            <div class="form-row">
+              <label>Age Range</label>
+              <div style="display:flex;gap:0.4rem;flex:1">
+                <input type="number" id="f-age-min" value="25" min="0" max="120" style="width:50%" />
+                <input type="number" id="f-age-max" value="35" min="0" max="120" style="width:50%" />
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Sex / Attribute</label>
+              <select id="f-sex">
+                <option value="female" selected>female</option>
+                <option value="male">male</option>
+                <option value="any">any</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Skin Tone</label>
+              <select id="f-skin-tone">
+                <option value="medium_brown" selected>medium_brown</option>
+                <option value="light_brown">light_brown</option>
+                <option value="dark_brown">dark_brown</option>
+                <option value="fair">fair</option>
+                <option value="deep">deep</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Pose</label>
+              <select id="f-pose">
+                <option value="frontal" selected>frontal</option>
+                <option value="slight_left">slight_left</option>
+                <option value="slight_right">slight_right</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Expression</label>
+              <select id="f-expression">
+                <option value="neutral" selected>neutral</option>
+                <option value="slight_smile">slight_smile</option>
+                <option value="smile">smile</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Lighting</label>
+              <select id="f-lighting">
+                <option value="neutral" selected>neutral</option>
+                <option value="soft">soft</option>
+                <option value="bright">bright</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Resolution</label>
+              <select id="f-resolution">
+                <option value="512" selected>512 x 512</option>
+                <option value="256">256 x 256</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Seed (Optional)</label>
+              <input type="number" id="f-seed" placeholder="Auto-generated random" />
+            </div>
+
+            <div class="form-row" style="margin-top:0.85rem">
+              <label>Prompt Mode</label>
+              <select id="f-prompt-mode">
+                <option value="auto" selected>Auto-generated</option>
+                <option value="custom">Custom prompt</option>
+              </select>
+            </div>
+
+            <!-- Auto-generated prompt container -->
+            <div id="container-auto-prompt">
+              <div style="margin-top:0.6rem;margin-bottom:0.4rem" class="card-title">
+                <span>Canonical Manifest Prompt Preview</span>
+                <span style="font-size:0.65rem;color:#718096;font-weight:normal">Auto-updates from attributes</span>
+              </div>
+              <div class="prompt-box" id="p-prompt-preview">Generating preview…</div>
+            </div>
+
+            <!-- Custom prompt container -->
+            <div id="container-custom-prompt" style="display:none">
+              <div style="margin-top:0.6rem;margin-bottom:0.4rem" class="card-title">
+                <span>Custom Prompt</span>
+                <button type="button" id="btn-reset-prompt" class="btn-secondary btn-sm" style="font-size:0.68rem;padding:0.2rem 0.5rem">
+                  Reset to Canonical
+                </button>
+              </div>
+              <textarea
+                id="f-custom-prompt"
+                class="prompt-box"
+                style="width:100%;height:105px;resize:vertical;font-family:inherit;font-size:0.76rem;line-height:1.45;outline:none;"
+                placeholder="Enter custom prompt for FLUX.2 Klein generation..."
+              ></textarea>
+              <div style="font-size:0.7rem;color:#718096;margin-top:0.25rem">
+                Directly submitted in manifest.json to Kaggle FLUX.2 Klein.
+              </div>
+            </div>
+
+            <button type="button" id="btn-run-test" class="btn-kaggle">
+              🚀 Run Real Kaggle Test
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- RIGHT: 10-Stage Pipeline Progress & Real Image Preview -->
+      <div>
+        <div class="card">
+          <div class="card-title">
+            <span>Pipeline Progress (10 Stages)</span>
+            <span id="run-status-badge" class="badge badge-PENDING">IDLE</span>
+          </div>
+
+          <div class="stage-list" id="stage-list-container">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="error-banner" id="error-banner"></div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card" id="preview-card" style="display:none">
+          <div class="card-title">
+            <span>FLUX.2 Klein Generated Image</span>
+            <button class="btn-secondary btn-sm" id="btn-cleanup">Clear Preview Memory</button>
+          </div>
+
+          <div class="preview-layout">
+            <div class="img-container">
+              <img id="preview-image" src="" alt="FLUX.2 Generated Face" />
+            </div>
+
+            <div>
+              <table class="meta-table">
+                <tbody>
+                  <tr>
+                    <td>Exact Prompt</td>
+                    <td id="m-prompt" style="font-size:0.72rem;line-height:1.3"></td>
+                  </tr>
+                  <tr>
+                    <td>Dimensions</td>
+                    <td id="m-dimensions"></td>
+                  </tr>
+                  <tr>
+                    <td>Format & Size</td>
+                    <td id="m-size"></td>
+                  </tr>
+                  <tr>
+                    <td>Seed</td>
+                    <td id="m-seed"></td>
+                  </tr>
+                  <tr>
+                    <td>Kaggle Run Slug</td>
+                    <td id="m-slug"></td>
+                  </tr>
+                  <tr>
+                    <td>Total Elapsed</td>
+                    <td id="m-time"></td>
+                  </tr>
+                  <tr>
+                    <td>Validation Outcome</td>
+                    <td id="m-validation" style="color:#68d391">ACCEPTED</td>
+                  </tr>
+                  <tr>
+                    <td>Disk Cleanup</td>
+                    <td id="m-cleanup" style="color:#68d391">SUCCESS</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const STAGE_NAMES = [
+      "Prompt prepared",
+      "Manifest created and validated",
+      "Kaggle manifest dataset updated",
+      "Notebook submitted",
+      "Notebook running",
+      "Notebook completed",
+      "Output archive retrieved",
+      "Image located and validated",
+      "Image ready for preview",
+      "Temporary cleanup completed",
+    ];
+
+    let currentRunId = null;
+    let pollTimer = null;
+
+    // Initialize stage list DOM
+    function initStages() {
+      const container = document.getElementById('stage-list-container');
+      container.innerHTML = STAGE_NAMES.map((name, idx) => {
+        const num = idx + 1;
+        return `
+          <div class="stage-item" id="stage-row-${num}">
+            <div class="stage-left">
+              <div class="stage-num" id="stage-num-${num}">${num}</div>
+              <div class="stage-info">
+                <div class="stage-name">${name}</div>
+                <div class="stage-details" id="stage-detail-${num}">Pending…</div>
+              </div>
+            </div>
+            <div>
+              <span class="badge badge-PENDING" id="stage-badge-${num}">PENDING</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    let customPromptDirty = false;
+    let latestCanonicalPrompt = '';
+
+    // Live prompt preview calculation
+    async function updatePromptPreview() {
+      const payload = {
+        population_group: document.getElementById('f-population').value,
+        region: document.getElementById('f-region').value,
+        age_min: parseInt(document.getElementById('f-age-min').value, 10) || 25,
+        age_max: parseInt(document.getElementById('f-age-max').value, 10) || 35,
+        sex_or_attribute: document.getElementById('f-sex').value,
+        skin_tone: document.getElementById('f-skin-tone').value,
+        pose: document.getElementById('f-pose').value,
+        expression: document.getElementById('f-expression').value,
+        lighting: document.getElementById('f-lighting').value,
+      };
+
+      try {
+        const resp = await fetch('/kaggle-test/prompt-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          latestCanonicalPrompt = data.prompt;
+          document.getElementById('p-prompt-preview').textContent = data.prompt;
+
+          // Pre-fill custom prompt if in auto mode and user has not typed custom edits
+          const customPromptEl = document.getElementById('f-custom-prompt');
+          const promptMode = document.getElementById('f-prompt-mode').value;
+          if (promptMode === 'auto' && !customPromptDirty) {
+            customPromptEl.value = data.prompt;
+          }
+        }
+      } catch (err) {
+        document.getElementById('p-prompt-preview').textContent = 'Error computing prompt preview';
+      }
+    }
+
+    // Attach form input listeners for auto preview (excluding custom prompt itself)
+    document.querySelectorAll('#test-form input:not(#f-custom-prompt), #test-form select:not(#f-prompt-mode)').forEach(el => {
+      el.addEventListener('input', updatePromptPreview);
+      el.addEventListener('change', updatePromptPreview);
+    });
+
+    // Prompt Mode switching
+    document.getElementById('f-prompt-mode').addEventListener('change', (e) => {
+      const mode = e.target.value;
+      const autoBox = document.getElementById('container-auto-prompt');
+      const customBox = document.getElementById('container-custom-prompt');
+      const customPromptEl = document.getElementById('f-custom-prompt');
+
+      if (mode === 'custom') {
+        autoBox.style.display = 'none';
+        customBox.style.display = 'block';
+        if (!customPromptEl.value.trim() && latestCanonicalPrompt) {
+          customPromptEl.value = latestCanonicalPrompt;
+        }
+        customPromptEl.focus();
+      } else {
+        autoBox.style.display = 'block';
+        customBox.style.display = 'none';
+      }
+    });
+
+    // Mark custom prompt as dirty when user edits it
+    document.getElementById('f-custom-prompt').addEventListener('input', () => {
+      customPromptDirty = true;
+    });
+
+    // Reset custom prompt to canonical prompt
+    document.getElementById('btn-reset-prompt').addEventListener('click', () => {
+      if (latestCanonicalPrompt) {
+        document.getElementById('f-custom-prompt').value = latestCanonicalPrompt;
+        customPromptDirty = false;
+      }
+    });
+
+    // Run test button click
+    document.getElementById('btn-run-test').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-run-test');
+      btn.disabled = true;
+      document.getElementById('error-banner').style.display = 'none';
+      document.getElementById('preview-card').style.display = 'none';
+
+      const promptMode = document.getElementById('f-prompt-mode').value;
+      const customPrompt = document.getElementById('f-custom-prompt').value.trim();
+
+      if (promptMode === 'custom' && !customPrompt) {
+        showError("Please enter a custom prompt or switch Prompt Mode back to Auto-generated.");
+        btn.disabled = false;
+        return;
+      }
+
+      initStages();
+
+      const seedVal = document.getElementById('f-seed').value.trim();
+      const payload = {
+        population_group: document.getElementById('f-population').value,
+        region: document.getElementById('f-region').value,
+        age_min: parseInt(document.getElementById('f-age-min').value, 10),
+        age_max: parseInt(document.getElementById('f-age-max').value, 10),
+        sex_or_attribute: document.getElementById('f-sex').value,
+        skin_tone: document.getElementById('f-skin-tone').value,
+        pose: document.getElementById('f-pose').value,
+        expression: document.getElementById('f-expression').value,
+        lighting: document.getElementById('f-lighting').value,
+        resolution: parseInt(document.getElementById('f-resolution').value, 10),
+        seed: seedVal ? parseInt(seedVal, 10) : null,
+        prompt_mode: promptMode,
+        custom_prompt: promptMode === 'custom' ? customPrompt : null,
+      };
+
+      try {
+        const resp = await fetch('/kaggle-test/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        currentRunId = data.run_id;
+        startPolling(currentRunId);
+
+      } catch (err) {
+        showError("Submission failed: " + err.message);
+        btn.disabled = false;
+      }
+    });
+
+    function startPolling(runId) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => pollStatus(runId), 2500);
+      pollStatus(runId);
+    }
+
+    async function pollStatus(runId) {
+      try {
+        const resp = await fetch(`/kaggle-test/status/${runId}`);
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        updateUI(data);
+
+        if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(data.status)) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          document.getElementById('btn-run-test').disabled = false;
+        }
+      } catch (e) {
+        console.error("Polling error", e);
+      }
+    }
+
+    function updateUI(data) {
+      // Overall status badge
+      const badge = document.getElementById('run-status-badge');
+      badge.textContent = data.status;
+      badge.className = `badge badge-${data.status}`;
+
+      // Update each stage row
+      if (data.stages) {
+        data.stages.forEach(st => {
+          const row = document.getElementById(`stage-row-${st.stage_id}`);
+          const b = document.getElementById(`stage-badge-${st.stage_id}`);
+          const d = document.getElementById(`stage-detail-${st.stage_id}`);
+
+          if (row && b) {
+            row.className = `stage-item ${st.status.toLowerCase()}`;
+            b.className = `badge badge-${st.status}`;
+            b.textContent = st.status;
+
+            let detailText = st.details || '';
+            if (st.duration_seconds !== null && st.duration_seconds !== undefined) {
+              detailText += ` (${st.duration_seconds}s)`;
+            }
+            if (st.error) {
+              if (st.details && st.details !== st.error && !st.error.includes(st.details)) {
+                detailText = `Error: ${st.error} — ${st.details}`;
+              } else {
+                detailText = `Error: ${st.error}`;
+              }
+            }
+            d.textContent = detailText || 'Pending…';
+          }
+        });
+      }
+
+      // If failed, show error banner
+      if (data.status === 'FAILED' && data.error_summary) {
+        showError(data.error_summary);
+      }
+
+      // If completed with image, show preview
+      if (data.status === 'COMPLETED' && (data.image_data_uri || data.image_url)) {
+        const card = document.getElementById('preview-card');
+        card.style.display = 'block';
+
+        const img = document.getElementById('preview-image');
+        img.src = data.image_data_uri || data.image_url;
+
+        document.getElementById('m-prompt').textContent = data.prompt || '—';
+        document.getElementById('m-dimensions').textContent =
+          data.image_metadata ? `${data.image_metadata.width} × ${data.image_metadata.height}` : '—';
+        document.getElementById('m-size').textContent =
+          data.image_metadata ? `${data.image_metadata.format.toUpperCase()} (${(data.image_metadata.file_size_bytes / 1024).toFixed(1)} KB)` : '—';
+        document.getElementById('m-seed').textContent = data.seed || '—';
+        document.getElementById('m-slug').textContent = data.provider_run_id || '—';
+        document.getElementById('m-time').textContent =
+          data.timing?.total_elapsed_seconds ? `${data.timing.total_elapsed_seconds}s` : '—';
+      }
+    }
+
+    function showError(msg) {
+      const banner = document.getElementById('error-banner');
+      banner.textContent = msg;
+      banner.style.display = 'block';
+    }
+
+    // Cleanup button
+    document.getElementById('btn-cleanup').addEventListener('click', async () => {
+      if (!currentRunId) return;
+      try {
+        await fetch(`/kaggle-test/cleanup/${currentRunId}`, { method: 'POST' });
+        document.getElementById('preview-card').style.display = 'none';
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    // Boot
+    initStages();
+    updatePromptPreview();
+  </script>
+</body>
+</html>
