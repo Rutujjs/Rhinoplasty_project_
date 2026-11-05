@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -36,6 +36,11 @@ venv/
 
 # Environment variables
 .env
+
+# Backup files
+*.bak
+*.backup.*
+*.backup.ipynb
 
 # Editable package metadata
 *.egg-info/
