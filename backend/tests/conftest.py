@@ -34,9 +34,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker, Session
 
-# Force in-memory SQLite before settings / app import
+# Force in-memory SQLite and MOCK provider before settings / app import
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ["JWT_SECRET"] = "test-secret-not-for-production"
+os.environ["GENERATION_PROVIDER"] = "MOCK"
+os.environ["GENERATION_MODEL"] = "MOCK"
+os.environ["RUN_EMBEDDED_WORKER"] = "false"
 
 # --------------------------------------------------------------------------- #
 # SQLite engine – created once per test session for speed.                     #
@@ -111,18 +114,19 @@ def client(db_session: Session) -> TestClient:
     receives `db_session` instead of the production database session.
     """
     def override_get_db():
+        session = _TestingSessionLocal()
         try:
-            yield db_session
+            yield session
         finally:
-            pass  # session lifecycle managed by db_session fixture
+            session.close()
 
     app.dependency_overrides[get_db] = override_get_db
 
-    with TestClient(app) as test_client:
-        yield test_client
-
-    # Remove the override after the test so other tests are unaffected.
-    app.dependency_overrides.pop(get_db, None)
+    try:
+        yield TestClient(app)
+    finally:
+        # Remove the override after the test so other tests are unaffected.
+        app.dependency_overrides.pop(get_db, None)
 
 
 # --------------------------------------------------------------------------- #

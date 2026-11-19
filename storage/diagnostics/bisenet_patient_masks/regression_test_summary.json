@@ -1,0 +1,332 @@
+{
+  "total_combinations": 36,
+  "passed": 33,
+  "immutability_verified": true,
+  "segmentation_backend": "BiSeNet ResNet-18 (ONNX)",
+  "results": [
+    {
+      "morphology": "saddle",
+      "viewpoint": "frontal",
+      "status": "PASSED",
+      "modified_pixels": 1086,
+      "modified_pct": 0.74,
+      "mask_pixels": 2384,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "left_20",
+      "status": "PASSED",
+      "modified_pixels": 1926,
+      "modified_pct": 0.73,
+      "mask_pixels": 3897,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "left_40",
+      "status": "PASSED",
+      "modified_pixels": 1661,
+      "modified_pct": 0.63,
+      "mask_pixels": 3632,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "left_60",
+      "status": "PASSED",
+      "modified_pixels": 2093,
+      "modified_pct": 0.8,
+      "mask_pixels": 4227,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "right_20",
+      "status": "PASSED",
+      "modified_pixels": 1925,
+      "modified_pct": 0.73,
+      "mask_pixels": 4280,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "right_40",
+      "status": "PASSED",
+      "modified_pixels": 2421,
+      "modified_pct": 0.92,
+      "mask_pixels": 4885,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "right_60",
+      "status": "PASSED",
+      "modified_pixels": 2452,
+      "modified_pct": 0.94,
+      "mask_pixels": 4195,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "basal",
+      "status": "NO_CHANGE",
+      "modified_pixels": 0,
+      "modified_pct": 0.0,
+      "mask_pixels": 5674,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "saddle",
+      "viewpoint": "helicopter",
+      "status": "PASSED",
+      "modified_pixels": 1055,
+      "modified_pct": 0.4,
+      "mask_pixels": 5706,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "frontal",
+      "status": "PASSED",
+      "modified_pixels": 958,
+      "modified_pct": 0.65,
+      "mask_pixels": 2384,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "left_20",
+      "status": "PASSED",
+      "modified_pixels": 1675,
+      "modified_pct": 0.64,
+      "mask_pixels": 3897,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "left_40",
+      "status": "PASSED",
+      "modified_pixels": 1409,
+      "modified_pct": 0.54,
+      "mask_pixels": 3632,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "left_60",
+      "status": "PASSED",
+      "modified_pixels": 1436,
+      "modified_pct": 0.55,
+      "mask_pixels": 4227,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "right_20",
+      "status": "PASSED",
+      "modified_pixels": 1668,
+      "modified_pct": 0.64,
+      "mask_pixels": 4280,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "right_40",
+      "status": "PASSED",
+      "modified_pixels": 2097,
+      "modified_pct": 0.8,
+      "mask_pixels": 4885,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "right_60",
+      "status": "PASSED",
+      "modified_pixels": 1759,
+      "modified_pct": 0.67,
+      "mask_pixels": 4195,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "basal",
+      "status": "NO_CHANGE",
+      "modified_pixels": 0,
+      "modified_pct": 0.0,
+      "mask_pixels": 5674,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "hump",
+      "viewpoint": "helicopter",
+      "status": "NO_CHANGE",
+      "modified_pixels": 0,
+      "modified_pct": 0.0,
+      "mask_pixels": 5706,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "frontal",
+      "status": "PASSED",
+      "modified_pixels": 1826,
+      "modified_pct": 1.24,
+      "mask_pixels": 2384,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "left_20",
+      "status": "PASSED",
+      "modified_pixels": 2602,
+      "modified_pct": 0.99,
+      "mask_pixels": 3897,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "left_40",
+      "status": "PASSED",
+      "modified_pixels": 2272,
+      "modified_pct": 0.87,
+      "mask_pixels": 3632,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "left_60",
+      "status": "PASSED",
+      "modified_pixels": 2927,
+      "modified_pct": 1.12,
+      "mask_pixels": 4227,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "right_20",
+      "status": "PASSED",
+      "modified_pixels": 2689,
+      "modified_pct": 1.03,
+      "mask_pixels": 4280,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "right_40",
+      "status": "PASSED",
+      "modified_pixels": 3350,
+      "modified_pct": 1.28,
+      "mask_pixels": 4885,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "right_60",
+      "status": "PASSED",
+      "modified_pixels": 3355,
+      "modified_pct": 1.28,
+      "mask_pixels": 4195,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "basal",
+      "status": "PASSED",
+      "modified_pixels": 5360,
+      "modified_pct": 2.04,
+      "mask_pixels": 5674,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "broad",
+      "viewpoint": "helicopter",
+      "status": "PASSED",
+      "modified_pixels": 4640,
+      "modified_pct": 1.77,
+      "mask_pixels": 5706,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "frontal",
+      "status": "PASSED",
+      "modified_pixels": 1754,
+      "modified_pct": 1.19,
+      "mask_pixels": 2384,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "left_20",
+      "status": "PASSED",
+      "modified_pixels": 2902,
+      "modified_pct": 1.11,
+      "mask_pixels": 3897,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "left_40",
+      "status": "PASSED",
+      "modified_pixels": 2543,
+      "modified_pct": 0.97,
+      "mask_pixels": 3632,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "left_60",
+      "status": "PASSED",
+      "modified_pixels": 3320,
+      "modified_pct": 1.27,
+      "mask_pixels": 4227,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "right_20",
+      "status": "PASSED",
+      "modified_pixels": 3195,
+      "modified_pct": 1.22,
+      "mask_pixels": 4280,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "right_40",
+      "status": "PASSED",
+      "modified_pixels": 3761,
+      "modified_pct": 1.43,
+      "mask_pixels": 4885,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "right_60",
+      "status": "PASSED",
+      "modified_pixels": 3581,
+      "modified_pct": 1.37,
+      "mask_pixels": 4195,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "basal",
+      "status": "PASSED",
+      "modified_pixels": 7029,
+      "modified_pct": 2.68,
+      "mask_pixels": 5674,
+      "unrelated_face_modifications": 0
+    },
+    {
+      "morphology": "deviated",
+      "viewpoint": "helicopter",
+      "status": "PASSED",
+      "modified_pixels": 6404,
+      "modified_pct": 2.44,
+      "mask_pixels": 5706,
+      "unrelated_face_modifications": 0
+    }
+  ]
+}

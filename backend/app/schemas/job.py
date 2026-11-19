@@ -81,6 +81,10 @@ class JobProgressResponse(BaseModel):
     # Human-readable status message
     status_message: str
 
+    # Complete Stage and Per-View Timing
+    timing: dict | None = None
+    estimated_remaining_seconds: float | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 

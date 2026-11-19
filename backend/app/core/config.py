@@ -91,6 +91,9 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------ #
     # Background worker                                                    #
     # ------------------------------------------------------------------ #
+    # Whether to run the embedded background worker inside the FastAPI process.
+    RUN_EMBEDDED_WORKER: bool = True
+
     # How often (seconds) the worker polls the job queue.
     WORKER_POLL_INTERVAL_SECONDS: int = 10
 

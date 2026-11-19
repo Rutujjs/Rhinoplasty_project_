@@ -19,7 +19,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-VENV_PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
+VENV_PYTHON = Path(sys.executable)
 
 
 def get_python():
@@ -78,7 +78,11 @@ def main():
     print("Synthetic APAC Face Dataset Generator - Test Suite")
     print("=" * 60)
 
-    # Safety check: ensure MOCK provider is active
+    # Safety check: ensure MOCK provider is active for offline test execution
+    import os
+    os.environ["GENERATION_PROVIDER"] = "MOCK"
+    os.environ["GENERATION_MODEL"] = "MOCK"
+    os.environ["RUN_EMBEDDED_WORKER"] = "false"
     from backend.app.core.config import settings  # type: ignore
     provider = settings.effective_provider
     if provider != "MOCK":
@@ -96,6 +100,9 @@ def main():
         ("backend/tests/test_kaggle_pipeline_test.py", "Phase B/E: Kaggle Pipeline Test UI & Service (NEW)"),
         ("backend/tests/test_generation.py", "Phase C: Generation API Tests"),
         ("backend/tests/test_kaggle_provider.py", "Phase D: Kaggle Provider Tests"),
+        ("backend/tests/test_multiview.py", "Phase M: 9-Viewpoint Architecture Tests"),
+        ("backend/tests/test_nasal_deformation.py", "Phase N: 2D Nasal Morphology Deformation Tests"),
+        ("backend/tests/test_dataset_isolation.py", "Phase I: Multi-Dataset Storage & Data Isolation Tests"),
     ]
 
     results = {}

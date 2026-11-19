@@ -27,6 +27,7 @@ from backend.app.core.exceptions import (
 )
 from backend.app.core.status import DatasetStatus, JobStatus
 from backend.app.database.session import get_db
+from backend.app.models.generation_job import GenerationJob
 from backend.app.schemas.generation import GenerationStatusResponse
 from backend.app.schemas.job import JobSubmitResponse
 from backend.app.services.dataset_service import get_dataset_by_id
@@ -70,19 +71,41 @@ def generate_images(
     if dataset is None:
         raise DatasetNotFoundException()
 
-    # 2. Guard against duplicate submissions
-    if dataset.status == DatasetStatus.GENERATING:
+    # 2. Guard against duplicate submissions (check dataset and existing active jobs)
+    active_job = (
+        db.query(GenerationJob)
+        .filter(
+            GenerationJob.dataset_id == dataset_id,
+            GenerationJob.status.in_([
+                JobStatus.QUEUED,
+                JobStatus.PREPARING,
+                JobStatus.SUBMITTED,
+                JobStatus.RUNNING,
+                JobStatus.CANCEL_REQUESTED,
+                JobStatus.DOWNLOADING,
+                JobStatus.VALIDATING,
+                JobStatus.PACKAGING,
+            ]),
+        )
+        .first()
+    )
+    if active_job or dataset.status in (
+        DatasetStatus.QUEUED,
+        DatasetStatus.GENERATING,
+        DatasetStatus.PROCESSING,
+        DatasetStatus.DEFORMING,
+    ):
         raise GenerationInProgressException()
 
-    if dataset.status == DatasetStatus.COMPLETED:
+    if dataset.status in (DatasetStatus.COMPLETED, DatasetStatus.COMPLETED_WITH_ERRORS):
         raise DatasetAlreadyCompletedException()
 
     # 3. Determine provider
     provider_name = settings.effective_provider
 
     try:
-        # 4. Mark dataset as generating
-        dataset.status = DatasetStatus.GENERATING
+        # 4. Mark dataset as QUEUED (synchronized with initial job status)
+        dataset.status = DatasetStatus.QUEUED
         db.flush()   # write but don't commit yet
 
         # 5. Create a durable job record
@@ -96,6 +119,12 @@ def generate_images(
 
         db.commit()
         db.refresh(job)
+
+        try:
+            from backend.worker import wake_worker
+            wake_worker()
+        except Exception:
+            pass
 
     except Exception:
         db.rollback()

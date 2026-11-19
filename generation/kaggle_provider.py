@@ -63,6 +63,7 @@ Never stored in source code or logs.
 from __future__ import annotations
 
 import builtins
+import io
 import json
 import logging
 import os
@@ -70,6 +71,7 @@ import re
 import shutil
 import tempfile
 import time
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -185,9 +187,134 @@ def _utf8_open_context():
         builtins.open = orig_open
 
 
+def _get_kaggle_credentials() -> tuple[str, str]:
+    """
+    Return (username, api_key) for the Kaggle API.
+
+    Resolution order (same as the official kaggle SDK):
+      1. KAGGLE_USERNAME + KAGGLE_KEY environment variables.
+      2. ~/.kaggle/kaggle.json  ({"username": "...", "key": "..."})
+
+    Raises EnvironmentError with an actionable message if credentials
+    are not found.  Never logs credential values.
+    """
+    username = os.environ.get("KAGGLE_USERNAME", "").strip()
+    key = os.environ.get("KAGGLE_KEY", "").strip()
+    if username and key:
+        return username, key
+
+    kaggle_json = Path.home() / ".kaggle" / "kaggle.json"
+    if kaggle_json.exists():
+        try:
+            data = json.loads(kaggle_json.read_text(encoding="utf-8"))
+            file_username = data.get("username", "").strip()
+            file_key = data.get("key", "").strip()
+            if file_username and file_key:
+                return file_username, file_key
+        except Exception as exc:
+            raise EnvironmentError(
+                f"Found ~/.kaggle/kaggle.json but could not parse it: {exc}. "
+                "Download a fresh token from https://www.kaggle.com/settings → API → Create New Token"
+            ) from exc
+
+    raise EnvironmentError(
+        "Kaggle credentials not found. Configure one of:\n"
+        "  1. Set KAGGLE_USERNAME and KAGGLE_KEY in backend/.env\n"
+        "  2. Place kaggle.json at ~/.kaggle/kaggle.json\n"
+        "     (download from https://www.kaggle.com/settings → API → Create New Token)"
+    )
+
+
+def _upload_manifest_via_rest_api(
+    tmp_dir: str,
+    manifest_dataset_slug: str,
+    version_notes: str,
+    job_id: int,
+) -> None:
+    """
+    Upload a new version of a Kaggle dataset using the Kaggle v1 REST API
+    directly via HTTP (no kaggle SDK used — works with any installed version).
+
+    Flow:
+      1. Read credentials from env / kaggle.json.
+      2. Zip the contents of tmp_dir.
+      3. POST the zip to /api/v1/datasets/{owner}/{slug}/versions/create
+         using HTTP Basic Auth (username:key).
+
+    Raises RuntimeError on API or HTTP failure.
+    """
+    import requests  # stdlib-safe; always present in this project
+
+    username, key = _get_kaggle_credentials()
+    owner_slug, dataset_slug = manifest_dataset_slug.split("/", 1)
+
+    # Build a zip of everything in tmp_dir.
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for item in Path(tmp_dir).rglob("*"):
+            if item.is_file():
+                zf.write(item, item.relative_to(tmp_dir))
+    zip_bytes = zip_buf.getvalue()
+
+    # Step 1: upload the blob file.
+    upload_url = (
+        f"https://www.kaggle.com/api/v1/datasets/{owner_slug}/{dataset_slug}"
+        f"/upload/file/{len(zip_bytes)}"
+    )
+    logger.debug(
+        "prepare_batch: uploading zip (%d bytes) for job=%d to blob endpoint",
+        len(zip_bytes),
+        job_id,
+    )
+    upload_resp = requests.post(
+        upload_url,
+        auth=(username, key),
+        data=zip_bytes,
+        headers={"Content-Type": "application/zip"},
+        timeout=120,
+    )
+    if upload_resp.status_code not in (200, 201):
+        raise RuntimeError(
+            f"File upload step failed: HTTP {upload_resp.status_code} — {upload_resp.text[:300]}"
+        )
+
+    blob_token = upload_resp.json().get("token", "")
+    if not blob_token:
+        raise RuntimeError(
+            f"File upload succeeded but no token returned. Response: {upload_resp.text[:300]}"
+        )
+
+    # Step 2: create a new dataset version referencing the uploaded blob.
+    version_url = (
+        f"https://www.kaggle.com/api/v1/datasets/{owner_slug}/{dataset_slug}/versions"
+    )
+    version_payload = {
+        "versionNotes": version_notes,
+        "files": [{"token": blob_token}],
+        "convertToCsv": False,
+        "deleteOldVersions": False,
+    }
+    version_resp = requests.post(
+        version_url,
+        auth=(username, key),
+        json=version_payload,
+        timeout=60,
+    )
+    if version_resp.status_code not in (200, 201):
+        raise RuntimeError(
+            f"Version creation step failed: HTTP {version_resp.status_code} — {version_resp.text[:300]}"
+        )
+
+    logger.debug(
+        "prepare_batch: version created for job=%d, response status=%d",
+        job_id,
+        version_resp.status_code,
+    )
+
+
 def _get_kaggle_api():
     """
-    Return an authenticated KaggleApi instance.
+    Return an authenticated KaggleApi instance (used for kernel push/poll/output).
 
     Raises EnvironmentError if credentials are not found.
     Never logs credential values.
@@ -200,13 +327,17 @@ def _get_kaggle_api():
     except OSError as exc:
         raise EnvironmentError(
             "Kaggle credentials not found. "
-            "Place kaggle.json at ~/.kaggle/kaggle.json or set "
-            "KAGGLE_USERNAME and KAGGLE_KEY environment variables."
+            "Ensure one of the following is configured:\n"
+            "  1. Place kaggle.json at ~/.kaggle/kaggle.json\n"
+            "     (download from https://www.kaggle.com/settings → API → Create New Token)\n"
+            "  2. Set KAGGLE_USERNAME and KAGGLE_KEY in backend/.env\n"
+            "     KAGGLE_USERNAME=<your-kaggle-username>\n"
+            "     KAGGLE_KEY=<your-32-char-api-key>"
         ) from exc
     except ImportError as exc:
         raise EnvironmentError(
-            "The 'kaggle' package is not installed. "
-            "Run: pip install kaggle"
+            "The 'kaggle' package is not installed in the active Python environment. "
+            "Activate the project .venv and run: pip install 'kaggle>=1.7,<2'"
         ) from exc
 
 
@@ -334,6 +465,61 @@ class KaggleBatchProvider(FaceGenerator):
                     )
             except Exception as exc:
                 safe_detail = _sanitize_error_detail(exc)
+
+                # Provide specific, actionable messages for common failure modes.
+                exc_str = str(exc)
+                if "401" in exc_str or "Unauthorized" in exc_str:
+                    action = (
+                        "HTTP 401 Unauthorized from Kaggle blob upload API. "
+                        "This usually means one of:\n"
+                        "  1. The application is running under the wrong Python environment "
+                        "(system kaggle 2.x instead of project .venv kaggle 1.7.x). "
+                        "Start the app with: .venv\\Scripts\\uvicorn backend.app.main:app --reload\n"
+                        "  2. The Kaggle API key in ~/.kaggle/kaggle.json is expired or revoked. "
+                        "Regenerate it at https://www.kaggle.com/settings → API → Create New Token\n"
+                        "  3. KAGGLE_USERNAME and KAGGLE_KEY are not set in backend/.env and "
+                        "~/.kaggle/kaggle.json is not accessible from the server process."
+                    )
+                    logger.error(
+                        "prepare_batch: dataset upload UNAUTHORIZED for job %d. %s",
+                        manifest.job_id,
+                        action,
+                    )
+                    return ProviderOperationResult.permanent_error(
+                        message=action,
+                        detail=safe_detail,
+                    )
+                elif "403" in exc_str or "Forbidden" in exc_str:
+                    action = (
+                        f"HTTP 403 Forbidden: authenticated user does not have write permission "
+                        f"on dataset '{manifest_dataset_slug}'. "
+                        "Ensure the dataset is owned by the authenticated Kaggle account."
+                    )
+                    logger.error(
+                        "prepare_batch: dataset upload FORBIDDEN for job %d on slug %s",
+                        manifest.job_id,
+                        manifest_dataset_slug,
+                    )
+                    return ProviderOperationResult.permanent_error(
+                        message=action,
+                        detail=safe_detail,
+                    )
+                elif "404" in exc_str or "Not Found" in exc_str:
+                    action = (
+                        f"HTTP 404 Not Found: dataset '{manifest_dataset_slug}' does not exist "
+                        "on Kaggle. Create it manually via the Kaggle web UI before generating."
+                    )
+                    logger.error(
+                        "prepare_batch: dataset not found for job %d: %s",
+                        manifest.job_id,
+                        manifest_dataset_slug,
+                    )
+                    return ProviderOperationResult.permanent_error(
+                        message=action,
+                        detail=safe_detail,
+                    )
+
+                # Generic upload failure.
                 logger.error(
                     "prepare_batch: dataset upload failed for job %d: %s%s",
                     manifest.job_id,

@@ -1,0 +1,263 @@
+[
+  {
+    "view": "frontal",
+    "canonical_name": "FRONT_0",
+    "image_size": [
+      384,
+      384
+    ],
+    "mask_active_pixels": 1912,
+    "mask_area_pct": 1.3,
+    "bbox": {
+      "xmin": 171,
+      "xmax": 220,
+      "ymin": 131,
+      "ymax": 189,
+      "w": 49,
+      "h": 58
+    },
+    "centroid": [
+      195.5,
+      160.0
+    ],
+    "relative_centroid": [
+      0.509,
+      0.417
+    ],
+    "broad_modified_pixels": 1690,
+    "leakage_outside_mask": 355,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_frontal.png"
+  },
+  {
+    "view": "left_20",
+    "canonical_name": "LEFT_20",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 3199,
+    "mask_area_pct": 1.22,
+    "bbox": {
+      "xmin": 168,
+      "xmax": 229,
+      "ymin": 174,
+      "ymax": 251,
+      "w": 61,
+      "h": 77
+    },
+    "centroid": [
+      198.5,
+      212.5
+    ],
+    "relative_centroid": [
+      0.388,
+      0.415
+    ],
+    "broad_modified_pixels": 2219,
+    "leakage_outside_mask": 398,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_left_20.png"
+  },
+  {
+    "view": "left_40",
+    "canonical_name": "LEFT_40",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 2784,
+    "mask_area_pct": 1.06,
+    "bbox": {
+      "xmin": 130,
+      "xmax": 187,
+      "ymin": 170,
+      "ymax": 244,
+      "w": 57,
+      "h": 74
+    },
+    "centroid": [
+      158.5,
+      207.0
+    ],
+    "relative_centroid": [
+      0.31,
+      0.404
+    ],
+    "broad_modified_pixels": 1801,
+    "leakage_outside_mask": 333,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_left_40.png"
+  },
+  {
+    "view": "left_60",
+    "canonical_name": "LEFT_60",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 2085,
+    "mask_area_pct": 0.8,
+    "bbox": {
+      "xmin": 96,
+      "xmax": 144,
+      "ymin": 167,
+      "ymax": 233,
+      "w": 48,
+      "h": 66
+    },
+    "centroid": [
+      120.0,
+      200.0
+    ],
+    "relative_centroid": [
+      0.234,
+      0.391
+    ],
+    "broad_modified_pixels": 417,
+    "leakage_outside_mask": 193,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_left_60.png"
+  },
+  {
+    "view": "right_20",
+    "canonical_name": "RIGHT_20",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 2825,
+    "mask_area_pct": 1.08,
+    "bbox": {
+      "xmin": 328,
+      "xmax": 385,
+      "ymin": 172,
+      "ymax": 247,
+      "w": 57,
+      "h": 75
+    },
+    "centroid": [
+      356.5,
+      209.5
+    ],
+    "relative_centroid": [
+      0.696,
+      0.409
+    ],
+    "broad_modified_pixels": 2032,
+    "leakage_outside_mask": 319,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_right_20.png"
+  },
+  {
+    "view": "right_40",
+    "canonical_name": "RIGHT_40",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 2705,
+    "mask_area_pct": 1.03,
+    "bbox": {
+      "xmin": 346,
+      "xmax": 398,
+      "ymin": 167,
+      "ymax": 242,
+      "w": 52,
+      "h": 75
+    },
+    "centroid": [
+      372.0,
+      204.5
+    ],
+    "relative_centroid": [
+      0.727,
+      0.399
+    ],
+    "broad_modified_pixels": 1832,
+    "leakage_outside_mask": 282,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_right_40.png"
+  },
+  {
+    "view": "right_60",
+    "canonical_name": "RIGHT_60",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 2434,
+    "mask_area_pct": 0.93,
+    "bbox": {
+      "xmin": 390,
+      "xmax": 438,
+      "ymin": 174,
+      "ymax": 247,
+      "w": 48,
+      "h": 73
+    },
+    "centroid": [
+      414.0,
+      210.5
+    ],
+    "relative_centroid": [
+      0.809,
+      0.411
+    ],
+    "broad_modified_pixels": 1816,
+    "leakage_outside_mask": 291,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_right_60.png"
+  },
+  {
+    "view": "basal",
+    "canonical_name": "BASAL",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 3463,
+    "mask_area_pct": 1.32,
+    "bbox": {
+      "xmin": 212,
+      "xmax": 296,
+      "ymin": 116,
+      "ymax": 173,
+      "w": 84,
+      "h": 57
+    },
+    "centroid": [
+      254.0,
+      144.5
+    ],
+    "relative_centroid": [
+      0.496,
+      0.282
+    ],
+    "broad_modified_pixels": 3228,
+    "leakage_outside_mask": 760,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_basal.png"
+  },
+  {
+    "view": "helicopter",
+    "canonical_name": "HELICOPTER",
+    "image_size": [
+      512,
+      512
+    ],
+    "mask_active_pixels": 3974,
+    "mask_area_pct": 1.52,
+    "bbox": {
+      "xmin": 227,
+      "xmax": 293,
+      "ymin": 323,
+      "ymax": 407,
+      "w": 66,
+      "h": 84
+    },
+    "centroid": [
+      260.0,
+      365.0
+    ],
+    "relative_centroid": [
+      0.508,
+      0.713
+    ],
+    "broad_modified_pixels": 3296,
+    "leakage_outside_mask": 658,
+    "strip_image": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\mask_audit\\diagnostic_helicopter.png"
+  }
+]

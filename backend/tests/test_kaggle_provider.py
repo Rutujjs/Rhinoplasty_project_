@@ -1581,3 +1581,176 @@ class TestValidateNestedArtifacts:
         assert images[0].seed == 1
         assert images[1].seed == 2
         assert all(img.validation_status == "ACCEPTED" for img in images)
+
+
+class TestKaggleQueueAndConcurrency:
+    """Tests for single-flight locking, queue dispatching, and worker recovery."""
+
+    def test_job_completion_releases_lock_and_dispatches_next_queued_job(
+        self, client: TestClient, db_session: Session, tmp_path
+    ):
+        """When Job A completes, the lock is released and Job B is immediately dispatched."""
+        from backend.worker import run_once
+        from backend.app.core.status import JobStatus, DatasetStatus
+        from backend.app.models.generation_job import GenerationJob
+        from backend.app.services.job_service import create_job
+        from backend.app.models.dataset import Dataset
+        from generation.interface import ProviderOperationResult
+
+        ds1_dict = create_test_dataset(client, overrides={"dataset_name": "DS_COMPL_1"})
+        ds2_dict = create_test_dataset(client, overrides={"dataset_name": "DS_COMPL_2"})
+
+        ds1 = db_session.query(Dataset).filter(Dataset.id == ds1_dict["id"]).first()
+        ds2 = db_session.query(Dataset).filter(Dataset.id == ds2_dict["id"]).first()
+        ds1.status = DatasetStatus.GENERATING
+        ds2.status = DatasetStatus.GENERATING
+        db_session.flush()
+
+        job1 = create_job(db_session, dataset=ds1, provider="KAGGLE_BATCH", requested_count=1)
+        job2 = create_job(db_session, dataset=ds2, provider="KAGGLE_BATCH", requested_count=1)
+        db_session.flush()
+
+        # Job1 is in PACKAGING (about to finish)
+        job1.status = JobStatus.PACKAGING.value
+        from backend.worker import WORKER_ID
+        job1.worker_id = WORKER_ID
+        db_session.commit()
+
+        # Mock packaging for job1 and preparation for job2
+        mock_provider = MagicMock()
+        mock_provider.prepare_batch.return_value = ProviderOperationResult.success()
+        mock_provider.submit_batch.return_value = ProviderOperationResult.success(
+            provider_run_id="rutujavaijanathpote/apac-face-generator"
+        )
+
+        with patch("backend.worker.settings") as s:
+            s.KAGGLE_KERNEL_SLUG = "rutujavaijanathpote/apac-face-generator"
+            s.WORKER_POLL_INTERVAL_SECONDS = 10
+            s.JOB_LEASE_SECONDS = 300
+            s.IMAGE_WIDTH = 512
+            s.IMAGE_HEIGHT = 512
+            s.ARTIFACT_DOWNLOAD_DIR = str(tmp_path)
+            with patch("backend.worker.get_provider", return_value=mock_provider):
+                with patch("backend.worker._kaggle_package") as mock_pkg:
+                    def fake_package(db, j, d):
+                        from backend.app.services.job_service import transition_job_status
+                        transition_job_status(db, j, JobStatus.COMPLETED, stage="Completed")
+                    mock_pkg.side_effect = fake_package
+
+                    processed = run_once(db_session)
+
+        db_session.refresh(job1)
+        db_session.refresh(job2)
+
+        # Job1 completed and released the lock
+        assert job1.status == JobStatus.COMPLETED.value
+        # Job2 was immediately claimed from QUEUED to SUBMITTED
+        assert job2.status in (JobStatus.SUBMITTED.value, JobStatus.PREPARING.value)
+        assert job2.worker_id == WORKER_ID
+
+    def test_cancelled_job_does_not_block_next_queued_job(
+        self, client: TestClient, db_session: Session
+    ):
+        """Cancelled jobs do not hold the lock or block queued jobs."""
+        from backend.worker import run_once
+        from backend.app.core.status import JobStatus, DatasetStatus
+        from backend.app.models.generation_job import GenerationJob
+        from backend.app.services.job_service import create_job
+        from backend.app.models.dataset import Dataset
+        from generation.interface import ProviderOperationResult
+
+        ds1_dict = create_test_dataset(client, overrides={"dataset_name": "DS_CANCEL_1"})
+        ds2_dict = create_test_dataset(client, overrides={"dataset_name": "DS_CANCEL_2"})
+
+        ds1 = db_session.query(Dataset).filter(Dataset.id == ds1_dict["id"]).first()
+        ds2 = db_session.query(Dataset).filter(Dataset.id == ds2_dict["id"]).first()
+
+        job1 = create_job(db_session, dataset=ds1, provider="KAGGLE_BATCH", requested_count=1)
+        job2 = create_job(db_session, dataset=ds2, provider="KAGGLE_BATCH", requested_count=1)
+        job1.status = JobStatus.CANCELLED.value
+        db_session.commit()
+
+        mock_provider = MagicMock()
+        mock_provider.prepare_batch.return_value = ProviderOperationResult.success()
+        mock_provider.submit_batch.return_value = ProviderOperationResult.success(
+            provider_run_id="rutujavaijanathpote/apac-face-generator"
+        )
+
+        with patch("backend.worker.settings") as s:
+            s.KAGGLE_KERNEL_SLUG = "rutujavaijanathpote/apac-face-generator"
+            s.WORKER_POLL_INTERVAL_SECONDS = 10
+            s.JOB_LEASE_SECONDS = 300
+            s.IMAGE_WIDTH = 512
+            s.IMAGE_HEIGHT = 512
+            s.ARTIFACT_DOWNLOAD_DIR = "storage/artifacts_tmp"
+            with patch("backend.worker.get_provider", return_value=mock_provider):
+                processed = run_once(db_session)
+
+        db_session.refresh(job2)
+        assert job2.status in (JobStatus.SUBMITTED.value, JobStatus.PREPARING.value)
+
+    def test_server_restart_adopts_in_flight_kaggle_job(
+        self, client: TestClient, db_session: Session
+    ):
+        """A new worker instance adopts in-flight jobs from a previous worker."""
+        from backend.worker import run_once, WORKER_ID
+        from backend.app.core.status import JobStatus
+        from backend.app.models.generation_job import GenerationJob
+        from backend.app.services.job_service import create_job
+        from backend.app.models.dataset import Dataset
+        from generation.interface import ProviderOperationResult
+
+        ds_dict = create_test_dataset(client, overrides={"dataset_name": "DS_RESTART"})
+        ds = db_session.query(Dataset).filter(Dataset.id == ds_dict["id"]).first()
+
+        job = create_job(db_session, dataset=ds, provider="KAGGLE_BATCH", requested_count=1)
+        job.status = JobStatus.RUNNING.value
+        job.worker_id = "old-crashed-worker-uuid"
+        job.provider_run_id = "rutujavaijanathpote/apac-face-generator"
+        from datetime import datetime, timedelta, timezone
+        # Expired lease from crashed worker
+        job.lease_expires_at = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=10)
+        db_session.commit()
+
+        mock_provider = MagicMock()
+        mock_provider.poll_status.return_value = ProviderOperationResult.pending()
+
+        with patch("backend.worker.settings") as s:
+            s.KAGGLE_KERNEL_SLUG = "rutujavaijanathpote/apac-face-generator"
+            s.WORKER_POLL_INTERVAL_SECONDS = 10
+            s.JOB_LEASE_SECONDS = 300
+            s.KAGGLE_RUN_TIMEOUT_SECONDS = 7200
+            with patch("backend.worker.get_provider", return_value=mock_provider):
+                processed = run_once(db_session)
+
+        db_session.refresh(job)
+        # The new worker must have adopted the in-flight job and renewed its lease
+        assert job.worker_id == WORKER_ID
+        assert job.lease_expires_at > datetime.now(timezone.utc).replace(tzinfo=None)
+
+    def test_stale_job_recovery_does_not_crash_on_invalid_transition(
+        self, client: TestClient, db_session: Session
+    ):
+        """Stale job recovery resets PREPARING jobs to QUEUED without throwing exceptions."""
+        from backend.app.core.status import JobStatus
+        from backend.app.services.job_service import create_job, get_stale_jobs, requeue_stale_job
+        from backend.app.models.dataset import Dataset
+        from datetime import datetime, timedelta, timezone
+
+        ds_dict = create_test_dataset(client, overrides={"dataset_name": "DS_STALE"})
+        ds = db_session.query(Dataset).filter(Dataset.id == ds_dict["id"]).first()
+
+        job = create_job(db_session, dataset=ds, provider="MOCK", requested_count=1)
+        job.status = JobStatus.PREPARING.value
+        job.worker_id = "dead-worker"
+        job.lease_expires_at = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=60)
+        db_session.commit()
+
+        stale = get_stale_jobs(db_session)
+        assert any(j.id == job.id for j in stale)
+
+        # Should recover cleanly without InvalidJobTransitionException
+        recovered = requeue_stale_job(db_session, job)
+        assert recovered.status == JobStatus.QUEUED.value
+        assert recovered.worker_id is None
+

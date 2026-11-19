@@ -99,6 +99,11 @@ class GeneratedImageResponse(BaseModel):
     deformation_status: str | None = "NOT_STARTED"
     deformed_image_path: str | None = None
     mask_image_path: str | None = None
+    deformed_image_url: str | None = None
+    mask_image_url: str | None = None
+    deformation_type: str | None = None
+    deformation_strength: float | None = None
+    deformation_direction: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True

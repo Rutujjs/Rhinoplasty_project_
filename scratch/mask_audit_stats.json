@@ -1,0 +1,281 @@
+{
+  "frontal": {
+    "view": "frontal",
+    "mask_file": "deformation\\reference_masks\\frontal_0\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      384,
+      384,
+      3
+    ],
+    "active_pixels": 20398,
+    "active_pct": 1.3,
+    "bbox": {
+      "xmin": 556,
+      "xmax": 719,
+      "ymin": 426,
+      "ymax": 619,
+      "w": 163,
+      "h": 193
+    },
+    "center": [
+      637.5,
+      522.5
+    ],
+    "relative_center": [
+      0.508,
+      0.417
+    ]
+  },
+  "left_20": {
+    "view": "left_20",
+    "mask_file": "deformation\\reference_masks\\left20\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 19041,
+    "active_pct": 1.21,
+    "bbox": {
+      "xmin": 409,
+      "xmax": 560,
+      "ymin": 426,
+      "ymax": 614,
+      "w": 151,
+      "h": 188
+    },
+    "center": [
+      484.5,
+      520.0
+    ],
+    "relative_center": [
+      0.386,
+      0.415
+    ]
+  },
+  "left_40": {
+    "view": "left_40",
+    "mask_file": "deformation\\reference_masks\\left40\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 16799,
+    "active_pct": 1.07,
+    "bbox": {
+      "xmin": 318,
+      "xmax": 459,
+      "ymin": 414,
+      "ymax": 599,
+      "w": 141,
+      "h": 185
+    },
+    "center": [
+      388.5,
+      506.5
+    ],
+    "relative_center": [
+      0.31,
+      0.404
+    ]
+  },
+  "left_60": {
+    "view": "left_60",
+    "mask_file": "deformation\\reference_masks\\left60\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 12497,
+    "active_pct": 0.79,
+    "bbox": {
+      "xmin": 233,
+      "xmax": 354,
+      "ymin": 409,
+      "ymax": 570,
+      "w": 121,
+      "h": 161
+    },
+    "center": [
+      293.5,
+      489.5
+    ],
+    "relative_center": [
+      0.234,
+      0.39
+    ]
+  },
+  "right_20": {
+    "view": "right_20",
+    "mask_file": "deformation\\reference_masks\\right20\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 17036,
+    "active_pct": 1.08,
+    "bbox": {
+      "xmin": 803,
+      "xmax": 942,
+      "ymin": 419,
+      "ymax": 604,
+      "w": 139,
+      "h": 185
+    },
+    "center": [
+      872.5,
+      511.5
+    ],
+    "relative_center": [
+      0.696,
+      0.408
+    ]
+  },
+  "right_40": {
+    "view": "right_40",
+    "mask_file": "deformation\\reference_masks\\right40\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 16203,
+    "active_pct": 1.03,
+    "bbox": {
+      "xmin": 845,
+      "xmax": 976,
+      "ymin": 409,
+      "ymax": 594,
+      "w": 131,
+      "h": 185
+    },
+    "center": [
+      910.5,
+      501.5
+    ],
+    "relative_center": [
+      0.726,
+      0.4
+    ]
+  },
+  "right_60": {
+    "view": "right_60",
+    "mask_file": "deformation\\reference_masks\\right60\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 14595,
+    "active_pct": 0.93,
+    "bbox": {
+      "xmin": 953,
+      "xmax": 1074,
+      "ymin": 424,
+      "ymax": 604,
+      "w": 121,
+      "h": 180
+    },
+    "center": [
+      1013.5,
+      514.0
+    ],
+    "relative_center": [
+      0.808,
+      0.41
+    ]
+  },
+  "basal": {
+    "view": "basal",
+    "mask_file": "deformation\\reference_masks\\basal_view\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 20664,
+    "active_pct": 1.31,
+    "bbox": {
+      "xmin": 517,
+      "xmax": 724,
+      "ymin": 284,
+      "ymax": 425,
+      "w": 207,
+      "h": 141
+    },
+    "center": [
+      620.5,
+      354.5
+    ],
+    "relative_center": [
+      0.495,
+      0.283
+    ]
+  },
+  "helicopter": {
+    "view": "helicopter",
+    "mask_file": "deformation\\reference_masks\\helicopter_view\\nose_binary.png",
+    "mask_shape": [
+      1254,
+      1254
+    ],
+    "p01_shape": [
+      512,
+      512,
+      3
+    ],
+    "active_pixels": 23906,
+    "active_pct": 1.52,
+    "bbox": {
+      "xmin": 554,
+      "xmax": 719,
+      "ymin": 789,
+      "ymax": 996,
+      "w": 165,
+      "h": 207
+    },
+    "center": [
+      636.5,
+      892.5
+    ],
+    "relative_center": [
+      0.508,
+      0.712
+    ]
+  }
+}

@@ -140,8 +140,8 @@ class TestGenerationStatus:
         response = client.get(f"/datasets/{dataset['id']}/generation-status")
         assert response.status_code == 200
         data = response.json()
-        # After enqueue the dataset status is set to GENERATING.
-        assert data["status"] == "GENERATING"
+        # After enqueue the dataset status is synchronized (QUEUED or GENERATING).
+        assert data["status"] in ("QUEUED", "GENERATING")
         assert data["requested_images"] == 1
 
     def test_status_nonexistent_dataset_returns_404(self, client: TestClient):

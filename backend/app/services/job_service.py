@@ -52,15 +52,18 @@ def create_job(
 
     Does NOT commit – caller is responsible for the transaction boundary.
     """
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     job = GenerationJob(
         dataset_id=dataset.id,
         provider=provider,
         status=JobStatus.QUEUED,
         requested_count=requested_count,
         current_stage="Waiting in queue",
-        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
-        updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        created_at=now,
+        updated_at=now,
     )
+    from backend.app.services.timing_service import record_stage_start
+    record_stage_start(job, "queue_waiting")
     db.add(job)
     return job
 
@@ -166,6 +169,21 @@ def transition_job_status(
         job.finished_at = datetime.now(timezone.utc).replace(tzinfo=None)
         job.lease_expires_at = None
         job.worker_id = None
+        try:
+            from backend.worker import wake_worker
+            wake_worker()
+        except Exception:
+            pass
+
+    # Synchronize dataset status to reflect job progression
+    try:
+        from backend.app.core.status import map_job_status_to_dataset_status
+        from backend.app.models.dataset import Dataset
+        dataset = db.query(Dataset).filter(Dataset.id == job.dataset_id).first()
+        if dataset is not None:
+            dataset.status = map_job_status_to_dataset_status(new_status, stage=job.current_stage)
+    except Exception as sync_exc:
+        logger.warning("Could not synchronize dataset status for job %d: %s", job.id, sync_exc)
 
     if commit:
         db.commit()
@@ -195,7 +213,12 @@ def claim_job(
     Claim a QUEUED job for the current worker process.
 
     Sets the lease and moves the job to PREPARING.
+    Idempotent: returns unmodified job if already claimed or not QUEUED.
     """
+    if JobStatus(job.status) != JobStatus.QUEUED:
+        logger.warning("Attempted to claim non-QUEUED job %d (status=%s)", job.id, job.status)
+        return job
+
     if worker_id is None:
         worker_id = f"{socket.gethostname()}-{uuid.uuid4().hex[:8]}"
 
@@ -206,6 +229,14 @@ def claim_job(
     job.lease_expires_at = now + lease_duration
     job.heartbeat_at = now
     job.started_at = job.started_at or now
+
+    # Record stage timing: queue waiting ends, manifest preparation begins
+    try:
+        from backend.app.services.timing_service import record_stage_end, record_stage_start
+        record_stage_end(job, "queue_waiting")
+        record_stage_start(job, "manifest_preparation")
+    except Exception as t_exc:
+        logger.warning("Could not record timing in claim_job %d: %s", job.id, t_exc)
 
     return transition_job_status(
         db,
@@ -225,29 +256,79 @@ def renew_lease(db: Session, job: GenerationJob) -> None:
     db.commit()
 
 
-def requeue_stale_job(db: Session, job: GenerationJob) -> GenerationJob:
+def requeue_stale_job(db: Session, job: GenerationJob, worker_id: str | None = None) -> GenerationJob:
     """
-    Re-queue a stale job so a healthy worker can pick it up.
+    Recover or re-queue a stale job so a healthy worker can pick it up.
 
-    The retry counter is not incremented here – the job failed due to a
-    worker crash, not a generation error.
+    - For KAGGLE_BATCH with an active remote execution (provider_run_id set):
+      Do not discard the remote run; renew the lease so the active worker
+      can check Kaggle kernel status.
+    - For jobs in PREPARING (before submission) or MOCK:
+      Reset back to QUEUED.
+    - Otherwise (e.g. max retries exceeded or unrecoverable):
+      Transition to FAILED to release the lock cleanly.
     """
     logger.warning(
-        "Requeueing stale job %d (was %s, lease expired at %s)",
+        "Recovering stale job %d (was %s, lease expired at %s, provider=%s)",
         job.id,
         job.status,
         job.lease_expires_at,
+        job.provider,
     )
+    current = JobStatus(job.status)
+
+    if job.provider == "KAGGLE_BATCH" and job.provider_run_id and current in (
+        JobStatus.SUBMITTED,
+        JobStatus.RUNNING,
+        JobStatus.DOWNLOADING,
+        JobStatus.VALIDATING,
+        JobStatus.PACKAGING,
+    ):
+        logger.info("Adopting stale in-flight Kaggle job %d (run_id=%s)", job.id, job.provider_run_id)
+        if worker_id:
+            job.worker_id = worker_id
+        renew_lease(db, job)
+        return job
+
     job.worker_id = None
     job.lease_expires_at = None
     job.heartbeat_at = None
-    return transition_job_status(
-        db,
-        job,
-        JobStatus.QUEUED,
-        stage="Re-queued after stale lease",
-        commit=True,
-    )
+
+    if current == JobStatus.PREPARING:
+        return transition_job_status(
+            db,
+            job,
+            JobStatus.QUEUED,
+            stage="Re-queued after stale lease",
+            commit=True,
+        )
+
+    if job.retry_count >= settings.JOB_MAX_RETRIES:
+        return transition_job_status(
+            db,
+            job,
+            JobStatus.FAILED,
+            stage="Failed due to worker timeout",
+            error_summary="Worker lease expired and retry limit reached",
+            commit=True,
+        )
+
+    try:
+        return transition_job_status(
+            db,
+            job,
+            JobStatus.FAILED,
+            stage="Stale worker lease expired",
+            error_summary="Worker lease expired while in non-recoverable state",
+            commit=True,
+        )
+    except Exception:
+        job.status = JobStatus.FAILED.value
+        job.current_stage = "Stale worker lease expired"
+        job.finished_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.commit()
+        db.refresh(job)
+        return job
 
 
 # --------------------------------------------------------------------------- #
@@ -265,6 +346,7 @@ def update_progress(
     rejected: int | None = None,
     failed: int | None = None,
     stage: str | None = None,
+    progress_percentage: float | None = None,
     commit: bool = True,
 ) -> None:
     """Update job counters and recalculate progress_percentage."""
@@ -283,8 +365,9 @@ def update_progress(
     if stage is not None:
         job.current_stage = stage
 
-    # Percentage is based on accepted images vs. requested.
-    if job.requested_count > 0:
+    if progress_percentage is not None:
+        job.progress_percentage = min(max(float(progress_percentage), 0.0), 100.0)
+    elif job.requested_count > 0:
         job.progress_percentage = min(
             (job.accepted_count / job.requested_count) * 100.0,
             100.0,
@@ -315,7 +398,16 @@ def request_cancellation(db: Session, job: GenerationJob) -> GenerationJob:
         raise JobNotCancellableException()
 
     if current == JobStatus.QUEUED:
-        return transition_job_status(db, job, JobStatus.CANCELLED, stage="Cancelled by user")
+        dataset = db.query(Dataset).filter(Dataset.id == job.dataset_id).first()
+        if dataset and dataset.status == DatasetStatus.GENERATING:
+            dataset.status = DatasetStatus.CREATED
+        result = transition_job_status(db, job, JobStatus.CANCELLED, stage="Cancelled by user")
+        try:
+            from backend.worker import wake_worker
+            wake_worker()
+        except Exception:
+            pass
+        return result
 
     if current.is_active:
         return transition_job_status(

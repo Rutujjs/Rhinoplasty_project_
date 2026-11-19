@@ -155,6 +155,13 @@ class GenerationJob(Base):
         comment="How many times this job has been retried",
     )
 
+    stage_timing: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        default=None,
+        comment="JSON record of durations and timestamps for each processing stage and viewpoint",
+    )
+
     # ------------------------------------------------------------------ #
     # Worker lease / heartbeat                                             #
     # ------------------------------------------------------------------ #

@@ -28,6 +28,9 @@ def create_dataset(db: Session, dataset_data: DatasetCreate) -> Dataset:
         patient_id=dataset_data.patient_id,
         custom_prompt=dataset_data.custom_prompt,
         viewpoint_prompts=dataset_data.viewpoint_prompts,
+        morphology_type=dataset_data.morphology_type,
+        deformation_strength=dataset_data.deformation_strength,
+        deviated_direction=dataset_data.deviated_direction,
         status="CREATED",
     )
 

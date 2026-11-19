@@ -1,0 +1,254 @@
+[
+  {
+    "view": "frontal",
+    "canonical_name": "FRONT_0",
+    "dimensions": [
+      384,
+      384
+    ],
+    "bisenet_pixels": 2384,
+    "bisenet_area_pct": 1.62,
+    "bisenet_centroid": [
+      193.0,
+      193.9
+    ],
+    "bisenet_bbox": {
+      "xmin": 168,
+      "xmax": 218,
+      "ymin": 153,
+      "ymax": 224
+    },
+    "reference_pixels": 1912,
+    "intersection_pixels": 873,
+    "bisenet_unique_pixels": 1511,
+    "reference_unique_pixels": 1039,
+    "iou_agreement": 0.255,
+    "dice_similarity": 0.406,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_frontal_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_frontal_reference_vs_bisenet.png"
+  },
+  {
+    "view": "left_20",
+    "canonical_name": "LEFT_20",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 3897,
+    "bisenet_area_pct": 1.49,
+    "bisenet_centroid": [
+      197.7,
+      263.2
+    ],
+    "bisenet_bbox": {
+      "xmin": 168,
+      "xmax": 229,
+      "ymin": 209,
+      "ymax": 304
+    },
+    "reference_pixels": 3199,
+    "intersection_pixels": 1268,
+    "bisenet_unique_pixels": 2629,
+    "reference_unique_pixels": 1931,
+    "iou_agreement": 0.218,
+    "dice_similarity": 0.357,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_left_20_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_left_20_reference_vs_bisenet.png"
+  },
+  {
+    "view": "left_40",
+    "canonical_name": "LEFT_40",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 3632,
+    "bisenet_area_pct": 1.39,
+    "bisenet_centroid": [
+      162.2,
+      240.9
+    ],
+    "bisenet_bbox": {
+      "xmin": 128,
+      "xmax": 191,
+      "ymin": 189,
+      "ymax": 277
+    },
+    "reference_pixels": 2784,
+    "intersection_pixels": 1622,
+    "bisenet_unique_pixels": 2010,
+    "reference_unique_pixels": 1162,
+    "iou_agreement": 0.338,
+    "dice_similarity": 0.506,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_left_40_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_left_40_reference_vs_bisenet.png"
+  },
+  {
+    "view": "left_60",
+    "canonical_name": "LEFT_60",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 4227,
+    "bisenet_area_pct": 1.61,
+    "bisenet_centroid": [
+      153.6,
+      238.2
+    ],
+    "bisenet_bbox": {
+      "xmin": 117,
+      "xmax": 181,
+      "ymin": 179,
+      "ymax": 280
+    },
+    "reference_pixels": 2085,
+    "intersection_pixels": 159,
+    "bisenet_unique_pixels": 4068,
+    "reference_unique_pixels": 1926,
+    "iou_agreement": 0.026,
+    "dice_similarity": 0.05,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_left_60_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_left_60_reference_vs_bisenet.png"
+  },
+  {
+    "view": "right_20",
+    "canonical_name": "RIGHT_20",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 4280,
+    "bisenet_area_pct": 1.63,
+    "bisenet_centroid": [
+      337.3,
+      240.5
+    ],
+    "bisenet_bbox": {
+      "xmin": 305,
+      "xmax": 370,
+      "ymin": 186,
+      "ymax": 281
+    },
+    "reference_pixels": 2825,
+    "intersection_pixels": 1194,
+    "bisenet_unique_pixels": 3086,
+    "reference_unique_pixels": 1631,
+    "iou_agreement": 0.202,
+    "dice_similarity": 0.336,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_right_20_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_right_20_reference_vs_bisenet.png"
+  },
+  {
+    "view": "right_40",
+    "canonical_name": "RIGHT_40",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 4885,
+    "bisenet_area_pct": 1.86,
+    "bisenet_centroid": [
+      367.7,
+      234.1
+    ],
+    "bisenet_bbox": {
+      "xmin": 336,
+      "xmax": 405,
+      "ymin": 175,
+      "ymax": 278
+    },
+    "reference_pixels": 2705,
+    "intersection_pixels": 2190,
+    "bisenet_unique_pixels": 2695,
+    "reference_unique_pixels": 515,
+    "iou_agreement": 0.406,
+    "dice_similarity": 0.577,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_right_40_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_right_40_reference_vs_bisenet.png"
+  },
+  {
+    "view": "right_60",
+    "canonical_name": "RIGHT_60",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 4195,
+    "bisenet_area_pct": 1.6,
+    "bisenet_centroid": [
+      392.5,
+      220.5
+    ],
+    "bisenet_bbox": {
+      "xmin": 363,
+      "xmax": 430,
+      "ymin": 168,
+      "ymax": 261
+    },
+    "reference_pixels": 2434,
+    "intersection_pixels": 1652,
+    "bisenet_unique_pixels": 2543,
+    "reference_unique_pixels": 782,
+    "iou_agreement": 0.332,
+    "dice_similarity": 0.498,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_right_60_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_right_60_reference_vs_bisenet.png"
+  },
+  {
+    "view": "basal",
+    "canonical_name": "BASAL",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 5674,
+    "bisenet_area_pct": 2.16,
+    "bisenet_centroid": [
+      246.1,
+      187.1
+    ],
+    "bisenet_bbox": {
+      "xmin": 202,
+      "xmax": 290,
+      "ymin": 135,
+      "ymax": 227
+    },
+    "reference_pixels": 3463,
+    "intersection_pixels": 1431,
+    "bisenet_unique_pixels": 4243,
+    "reference_unique_pixels": 2032,
+    "iou_agreement": 0.186,
+    "dice_similarity": 0.313,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_basal_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_basal_reference_vs_bisenet.png"
+  },
+  {
+    "view": "helicopter",
+    "canonical_name": "HELICOPTER",
+    "dimensions": [
+      512,
+      512
+    ],
+    "bisenet_pixels": 5706,
+    "bisenet_area_pct": 2.18,
+    "bisenet_centroid": [
+      260.4,
+      326.1
+    ],
+    "bisenet_bbox": {
+      "xmin": 224,
+      "xmax": 298,
+      "ymin": 265,
+      "ymax": 379
+    },
+    "reference_pixels": 3974,
+    "intersection_pixels": 2136,
+    "bisenet_unique_pixels": 3570,
+    "reference_unique_pixels": 1838,
+    "iou_agreement": 0.283,
+    "dice_similarity": 0.441,
+    "strip_5panel_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\diagnostic_helicopter_5panel.png",
+    "comparison_path": "C:\\Users\\poter\\Downloads\\synthetic\\storage\\diagnostics\\bisenet_patient_masks\\comparison_helicopter_reference_vs_bisenet.png"
+  }
+]

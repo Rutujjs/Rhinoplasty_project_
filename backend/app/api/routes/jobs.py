@@ -66,6 +66,11 @@ def _build_progress_response(job) -> JobProgressResponse:
         job.current_stage or job.status,
     )
 
+    from backend.app.services.timing_service import get_job_timing_summary, estimate_remaining_seconds
+
+    timing_summary = get_job_timing_summary(job)
+    est_rem = estimate_remaining_seconds(job)
+
     return JobProgressResponse(
         job_id=job.id,
         dataset_id=job.dataset_id,
@@ -89,6 +94,8 @@ def _build_progress_response(job) -> JobProgressResponse:
         updated_at=job.updated_at,
         finished_at=job.finished_at,
         status_message=status_message,
+        timing=timing_summary,
+        estimated_remaining_seconds=est_rem,
     )
 
 

@@ -34,6 +34,11 @@ class DatasetCreate(BaseModel):
     custom_prompt: str | None = Field(default=None, max_length=4000)
     viewpoint_prompts: str | None = Field(default=None, max_length=8000)
 
+    # Nasal morphology deformation parameters
+    morphology_type: str = Field(default="saddle", max_length=50)
+    deformation_strength: float = Field(default=0.6, ge=0.0, le=2.0)
+    deviated_direction: str = Field(default="right", max_length=20)
+
     @model_validator(mode="after")
     def validate_age_range(self):
         if self.age_min > self.age_max:
@@ -71,7 +76,12 @@ class DatasetResponse(BaseModel):
     custom_prompt: str | None = None
     viewpoint_prompts: str | None = None
 
+    morphology_type: str = "saddle"
+    deformation_strength: float = 0.6
+    deviated_direction: str = "right"
+
     created_at: datetime
+    timing: dict | None = None
 
     model_config = ConfigDict(
         from_attributes=True

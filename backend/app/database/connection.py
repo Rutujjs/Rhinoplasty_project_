@@ -69,10 +69,49 @@ def _init_engine():
 
 engine = _init_engine()
 
+def _auto_migrate_sqlite(eng):
+    """Ensure newly added columns exist in existing SQLite databases."""
+    try:
+        with eng.connect() as conn:
+            # Check datasets columns
+            res = conn.execute(text("PRAGMA table_info(datasets)")).fetchall()
+            if res:
+                existing_cols = {row[1] for row in res}
+                cols_to_add = [
+                    ("morphology_type", "VARCHAR(50) DEFAULT 'saddle'"),
+                    ("deformation_strength", "FLOAT DEFAULT 0.6"),
+                    ("deviated_direction", "VARCHAR(20) DEFAULT 'right'"),
+                ]
+                for col_name, col_def in cols_to_add:
+                    if col_name not in existing_cols:
+                        conn.execute(text(f"ALTER TABLE datasets ADD COLUMN {col_name} {col_def}"))
+                conn.commit()
+
+            # Check generated_images columns
+            res_img = conn.execute(text("PRAGMA table_info(generated_images)")).fetchall()
+            if res_img:
+                existing_img_cols = {row[1] for row in res_img}
+                img_cols_to_add = [
+                    ("deformation_status", "VARCHAR(50) DEFAULT 'NOT_STARTED'"),
+                    ("deformed_image_path", "VARCHAR(500)"),
+                    ("mask_image_path", "VARCHAR(500)"),
+                    ("deformation_type", "VARCHAR(50)"),
+                    ("deformation_strength", "FLOAT"),
+                    ("deformation_direction", "VARCHAR(20)"),
+                    ("deformed_at", "DATETIME"),
+                ]
+                for col_name, col_def in img_cols_to_add:
+                    if col_name not in existing_img_cols:
+                        conn.execute(text(f"ALTER TABLE generated_images ADD COLUMN {col_name} {col_def}"))
+                conn.commit()
+    except Exception as exc:
+        logger.debug("Auto-migrate SQLite columns skipped: %s", exc)
+
 # Ensure database tables exist
 try:
     from backend.app.database.base import Base
     import backend.app.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    _auto_migrate_sqlite(engine)
 except Exception as exc:
     logger.warning("Could not auto-create database tables on engine init: %s", exc)

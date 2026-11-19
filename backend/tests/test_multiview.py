@@ -215,7 +215,7 @@ class TestDeformationServiceIntegration:
         data = resp.json()
         assert data["dataset_id"] == dataset_id
         assert data["patient_id"] == "P01"
-        assert data["backend_integration_ready"] is False
+        assert data["backend_integration_ready"] is True
         assert "awaiting" in data["message"].lower() or "ready" in data["message"].lower()
 
     def test_deformation_trigger_returns_accepted(self, client: TestClient):

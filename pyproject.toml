@@ -10,3 +10,7 @@ requires-python = ">=3.11"
 
 [tool.setuptools.packages.find]
 include = ["backend*", "generation*"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+norecursedirs = ["nasal-deformation-pipeline-main", "storage", ".venv"]

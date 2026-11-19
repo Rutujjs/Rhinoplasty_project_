@@ -77,3 +77,55 @@ def get_image_file(
         media_type="image/png",
         filename=image_path.name,
     )
+
+
+@router.get(
+    "/{image_id}/deformed",
+    summary="Download the deformed image file",
+)
+def get_deformed_image_file(
+    image_id: int,
+    db: Session = Depends(get_db),
+):
+    image = get_generated_image_by_id(db=db, image_id=image_id)
+    if image is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    if not image.deformed_image_path:
+        raise HTTPException(status_code=404, detail="Deformed image not available for this image")
+
+    path = Path(image.deformed_image_path)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Deformed image file not found on disk")
+
+    return FileResponse(
+        path=path,
+        media_type="image/png",
+        filename=path.name,
+    )
+
+
+@router.get(
+    "/{image_id}/mask",
+    summary="Download the nasal mask image file",
+)
+def get_mask_image_file(
+    image_id: int,
+    db: Session = Depends(get_db),
+):
+    image = get_generated_image_by_id(db=db, image_id=image_id)
+    if image is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    if not image.mask_image_path:
+        raise HTTPException(status_code=404, detail="Mask image not available for this image")
+
+    path = Path(image.mask_image_path)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Mask file not found on disk")
+
+    return FileResponse(
+        path=path,
+        media_type="image/png",
+        filename=path.name,
+    )

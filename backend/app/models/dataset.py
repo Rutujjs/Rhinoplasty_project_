@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import DateTime, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.database.base import Base
@@ -115,6 +115,25 @@ class Dataset(Base):
         String(8000),
         nullable=True,
         default=None,
+    )
+
+    # Selected nasal morphology and deformation parameters
+    morphology_type: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        default="saddle",
+    )
+
+    deformation_strength: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        default=0.6,
+    )
+
+    deviated_direction: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+        default="right",
     )
 
     created_at: Mapped[datetime] = mapped_column(

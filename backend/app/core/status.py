@@ -9,6 +9,8 @@ status must call the helper  JobStatus.can_transition_to()  so invalid
 moves are caught early.
 """
 
+from __future__ import annotations
+
 from enum import Enum
 
 
@@ -17,16 +19,72 @@ class DatasetStatus(str, Enum):
 
     Transitions
     -----------
-    CREATED  → GENERATING | FAILED
-    GENERATING → COMPLETED | COMPLETED_WITH_ERRORS | FAILED
-    COMPLETED / COMPLETED_WITH_ERRORS / FAILED  → (terminal, no further change)
+    CREATED    → QUEUED | GENERATING | FAILED
+    QUEUED     → GENERATING | CANCELLED | FAILED
+    GENERATING → PROCESSING | DEFORMING | COMPLETED | COMPLETED_WITH_ERRORS | FAILED | CANCELLED
+    PROCESSING → DEFORMING | COMPLETED | COMPLETED_WITH_ERRORS | FAILED | CANCELLED
+    DEFORMING  → COMPLETED | COMPLETED_WITH_ERRORS | FAILED | CANCELLED
+    COMPLETED / COMPLETED_WITH_ERRORS / FAILED / CANCELLED → (terminal)
     """
 
     CREATED = "CREATED"
+    QUEUED = "QUEUED"
     GENERATING = "GENERATING"
+    PROCESSING = "PROCESSING"
+    DEFORMING = "DEFORMING"
     COMPLETED = "COMPLETED"
     COMPLETED_WITH_ERRORS = "COMPLETED_WITH_ERRORS"
     FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+
+def map_job_status_to_dataset_status(job_status: str | JobStatus, stage: str | None = None) -> DatasetStatus:
+    """Map internal generation job status to researcher-facing Dataset status.
+
+    Mapping Rules
+    -------------
+    CREATED          → CREATED
+    QUEUED           → QUEUED
+    PREPARING        → GENERATING
+    SUBMITTED        → GENERATING
+    RUNNING          → GENERATING
+    DOWNLOADING      → PROCESSING
+    VALIDATING       → PROCESSING
+    PACKAGING        → DEFORMING (if stage indicates deformation) else PROCESSING
+    COMPLETED        → COMPLETED
+    COMPLETED_WITH_ERRORS → COMPLETED_WITH_ERRORS
+    FAILED           → FAILED
+    CANCEL_REQUESTED → CANCELLED
+    CANCELLED        → CANCELLED
+    """
+    if isinstance(job_status, str):
+        try:
+            js = JobStatus(job_status)
+        except ValueError:
+            return DatasetStatus.CREATED
+    else:
+        js = job_status
+
+    if js == JobStatus.QUEUED:
+        return DatasetStatus.QUEUED
+    elif js in (JobStatus.PREPARING, JobStatus.SUBMITTED, JobStatus.RUNNING):
+        return DatasetStatus.GENERATING
+    elif js in (JobStatus.DOWNLOADING, JobStatus.VALIDATING):
+        return DatasetStatus.PROCESSING
+    elif js == JobStatus.PACKAGING:
+        if stage and "deform" in stage.lower():
+            return DatasetStatus.DEFORMING
+        return DatasetStatus.PROCESSING
+    elif js == JobStatus.COMPLETED:
+        return DatasetStatus.COMPLETED
+    elif js == JobStatus.COMPLETED_WITH_ERRORS:
+        return DatasetStatus.COMPLETED_WITH_ERRORS
+    elif js == JobStatus.FAILED:
+        return DatasetStatus.FAILED
+    elif js in (JobStatus.CANCELLED, JobStatus.CANCEL_REQUESTED):
+        return DatasetStatus.CANCELLED
+
+    return DatasetStatus.CREATED
 
 
 class JobStatus(str, Enum):
@@ -94,11 +152,14 @@ _JOB_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
         JobStatus.RUNNING,   # MOCK provider skips SUBMITTED
         JobStatus.FAILED,
         JobStatus.CANCELLED,
+        JobStatus.CANCEL_REQUESTED,
+        JobStatus.QUEUED,    # Allow recovery of stale lease during PREPARING
     },
     JobStatus.SUBMITTED: {
         JobStatus.RUNNING,
         JobStatus.FAILED,
         JobStatus.CANCELLED,
+        JobStatus.CANCEL_REQUESTED,
     },
     JobStatus.RUNNING: {
         JobStatus.DOWNLOADING,
